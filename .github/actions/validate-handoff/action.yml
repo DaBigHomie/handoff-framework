@@ -1,0 +1,37 @@
+name: 'Validate Handoff Docs'
+description: 'Validate handoff documentation in a PR using @dabighomie/handoff-framework'
+inputs:
+  project-name:
+    description: 'Project name (used for resolution)'
+    required: true
+  session:
+    description: 'Handoff session slug (e.g. checkout-refactor)'
+    required: false
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '18'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Run handoff validation
+      shell: bash
+      run: |
+        echo "Validating handoff docs for ${{ inputs.project-name }}"
+
+        SESSION_FLAG=""
+        if [[ -n "${{ inputs.session }}" ]]; then
+          SESSION_FLAG="--session ${{ inputs.session }}"
+        fi
+
+        # Run naming validation
+        npx @dabighomie/handoff-framework validate:naming ${{ inputs.project-name }} $SESSION_FLAG
+
+        # Run doc quality validation
+        npx @dabighomie/handoff-framework validate ${{ inputs.project-name }} $SESSION_FLAG

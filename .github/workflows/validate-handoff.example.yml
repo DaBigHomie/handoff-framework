@@ -1,0 +1,45 @@
+# Handoff Documentation Validation Workflow
+#
+# Add this to any repo at .github/workflows/validate-handoff.yml
+# Validates handoff documentation on PRs that modify docs/handoff*/ files.
+#
+# Prerequisites: None — uses npx to run @dabighomie/handoff-framework
+
+name: Validate Handoff Docs
+on:
+  pull_request:
+    paths:
+      - 'docs/handoff*/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Validate handoff documentation
+        run: |
+          # Detect project name from repo
+          PROJECT_NAME="${GITHUB_REPOSITORY##*/}"
+
+          # Find all handoff session folders
+          for dir in docs/handoff*/; do
+            if [[ -d "$dir" ]]; then
+              SESSION_SLUG="${dir#docs/handoff}"
+              SESSION_SLUG="${SESSION_SLUG%/}"
+              SESSION_SLUG="${SESSION_SLUG#-}"
+
+              SESSION_FLAG=""
+              if [[ -n "$SESSION_SLUG" ]]; then
+                SESSION_FLAG="--session $SESSION_SLUG"
+              fi
+
+              echo "--- Validating: $dir ---"
+              npx @dabighomie/handoff-framework validate:naming "$PROJECT_NAME" $SESSION_FLAG || true
+              npx @dabighomie/handoff-framework validate "$PROJECT_NAME" $SESSION_FLAG || true
+            fi
+          done

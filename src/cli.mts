@@ -117,23 +117,21 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Re-invoke the specific script with the remaining args
+  // Dynamically import the sub-command module.
+  // Sub-commands read process.argv.slice(2) — strip the command name so they
+  // see [project-name, --session, ...] instead of [command, project-name, ...].
   const scriptPath = join(__dirname, cmd.script);
-  const { execAsync } = await import('./utils.js');
+  const savedArgv = process.argv;
+  process.argv = [process.argv[0], scriptPath, ...args];
 
   try {
-    const fullArgs = [scriptPath, ...args].map((a) => `"${a}"`).join(' ');
-    const { stdout, stderr } = await execAsync(`npx tsx ${fullArgs}`, {
-      cwd: join(__dirname, '..'),
-      env: { ...process.env },
-    });
-    if (stdout) process.stdout.write(stdout);
-    if (stderr) process.stderr.write(stderr);
+    await import(scriptPath);
   } catch (err: unknown) {
-    const execErr = err as { stdout?: string; stderr?: string; code?: number };
-    if (execErr.stdout) process.stdout.write(execErr.stdout);
-    if (execErr.stderr) process.stderr.write(execErr.stderr);
-    process.exit(execErr.code || 1);
+    const error = err as Error;
+    log.error(`Failed to run "${command}": ${error.message}`);
+    process.exit(1);
+  } finally {
+    process.argv = savedArgv;
   }
 }
 

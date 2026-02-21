@@ -136,17 +136,39 @@ export async function getProjectVersion(projectDir: string): Promise<string> {
 
 // ─── Path Helpers ────────────────────────────────────────────────
 
-/** Get the framework root directory (parent of src/) */
+/** Get the framework root directory (parent of src/ or dist/src/) */
 export function getFrameworkRoot(importMetaUrl: string): string {
   const __filename = fileURLToPath(importMetaUrl);
   const __dirname = dirname(__filename);
+  // Compiled output lives at dist/src/, so go up two levels
+  if (__dirname.endsWith(join('dist', 'src'))) {
+    return join(__dirname, '..', '..');
+  }
   return join(__dirname, '..');
 }
 
-/** Resolve project directory relative to workspace root */
+/**
+ * Detect whether the framework is running from inside node_modules
+ * (npm-installed) vs as a local sibling directory.
+ */
+export function isInstalledFromNpm(frameworkRoot: string): boolean {
+  return frameworkRoot.includes(`${join('node_modules', '@dabighomie')}`)
+    || frameworkRoot.includes(`${join('node_modules', 'handoff-framework')}`);
+}
+
+/**
+ * Resolve project directory by name.
+ *
+ * - **Local dev**: framework is at workspace-root/.handoff-framework/,
+ *   projects sit at workspace-root/{project-name}/
+ * - **npm-installed**: framework is inside node_modules/,
+ *   projects sit at process.cwd()/{project-name}/ (or cwd IS the project)
+ */
 export function resolveProjectDir(frameworkRoot: string, projectName: string): string {
-  // Framework sits at workspace-root/.handoff-framework/ (or as standalone repo)
-  // Projects sit at workspace-root/{project-name}/
+  if (isInstalledFromNpm(frameworkRoot)) {
+    return join(process.cwd(), projectName);
+  }
+  // Local dev: sibling to framework dir
   return join(frameworkRoot, '..', projectName);
 }
 

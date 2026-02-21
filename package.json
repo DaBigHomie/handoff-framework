@@ -1,12 +1,21 @@
 {
     "name": "@dabighomie/handoff-framework",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "description": "Portable handoff documentation framework for agent-to-agent knowledge transfer with numeric-first naming",
     "type": "module",
-    "main": "src/cli.mts",
+    "main": "dist/src/cli.mjs",
     "bin": {
         "handoff": "bin/handoff.mjs"
     },
+    "files": [
+        "bin/",
+        "dist/src/",
+        "templates/v3/",
+        "scripts/validate-quality.js",
+        "README.md",
+        "HANDOFF_PROTOCOL.md",
+        "QUICK_REFERENCE.md"
+    ],
     "scripts": {
         "init": "tsx src/init-project.mts",
         "generate": "tsx src/generate-state.mts",
@@ -17,6 +26,7 @@
         "test": "node --import tsx --test tests/**/*.spec.ts",
         "typecheck": "tsc --noEmit",
         "build": "tsc",
+        "prepublishOnly": "npm run typecheck && npm run build && npm test",
         "version:bump": "tsx src/version-bump.mts"
     },
     "keywords": [
@@ -36,11 +46,10 @@
     "engines": {
         "node": ">=18.0.0"
     },
-    "dependencies": {
-        "tsx": "^4.7.0"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@types/node": "^20.11.0",
+        "tsx": "^4.7.0",
         "typescript": "^5.3.3"
     }
 }

@@ -5,7 +5,7 @@
  * Bump via: npx tsx src/version-bump.mts [major|minor|patch]
  */
 
-export const VERSION = '3.0.0' as const;
+export const VERSION = '3.1.0' as const;
 export const VERSION_DATE = '2026-02-21' as const;
 export const FRAMEWORK_NAME = '@dabighomie/handoff-framework' as const;
 
