@@ -10,7 +10,7 @@
  * Example: npx tsx src/init-project.mts one4three-co-next-app  (creates docs/handoff/)
  */
 
-import { copyFile, mkdir, writeFile } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { VERSION } from './version.js';
@@ -33,6 +33,9 @@ import {
   resolveProjectDir,
   getHandoffDocsPath,
   parseSessionArg,
+  parseTagsArg,
+  buildDefaultFrontmatter,
+  injectFrontmatter,
 } from './utils.js';
 
 // ─── Template Installer ─────────────────────────────────────────
@@ -46,17 +49,16 @@ async function copyTemplates(
   templatesDir: string,
   handoffDir: string,
   today: string,
+  tags: string[] = [],
 ): Promise<CopyResult> {
   const allTemplates = [...REQUIRED_TEMPLATES, ...RECOMMENDED_TEMPLATES];
   let copied = 0;
   let skipped = 0;
 
   for (const tpl of allTemplates) {
-    // Template source: templates/v2/CO-00-MASTER_INDEX.md (no date)
     const srcFilename = `${tpl.filename}.md`;
     const srcPath = join(templatesDir, 'v2', srcFilename);
 
-    // Output: docs/handoff/CO-00-MASTER_INDEX_2026-02-20.md (with date)
     const outFilename = `${tpl.filename}_${today}.md`;
     const outPath = join(handoffDir, outFilename);
 
@@ -71,9 +73,16 @@ async function copyTemplates(
       continue;
     }
 
-    await copyFile(srcPath, outPath);
+    // Read template, inject frontmatter with tags + metadata, then write
+    const { readFile: fsReadFile } = await import('fs/promises');
+    let content = await fsReadFile(srcPath, 'utf-8');
+    const fm = buildDefaultFrontmatter(tpl.sequence, today, tags);
+    content = injectFrontmatter(content, fm);
+    await writeFile(outPath, content, 'utf-8');
+
     const label = tpl.required ? '🔴' : '🟡';
-    log.success(`  ${label} Copied: ${outFilename}`);
+    const tagLabel = tags.length > 0 ? ` [${tags.join(', ')}]` : '';
+    log.success(`  ${label} Copied: ${outFilename}${tagLabel}`);
     copied++;
   }
 
@@ -87,6 +96,7 @@ function buildConfig(
   version: string,
   techStack: string[],
   sessionSlug?: string,
+  tags: string[] = [],
 ): HandoffConfig {
   const today = todayISO();
   const docsPath = buildDocsPath(sessionSlug);
@@ -97,6 +107,7 @@ function buildConfig(
     description: '',
     techStack,
     sessionSlug,
+    tags: tags.length > 0 ? tags : undefined,
     framework: {
       version: VERSION,
       namingVersion: 'v2.1',
@@ -153,6 +164,7 @@ function generateMasterIndex(
   techStack: string[],
   today: string,
   sessionSlug?: string,
+  tags: string[] = [],
 ): string {
   const reqRows = REQUIRED_TEMPLATES.map(
     (t) =>
@@ -165,13 +177,29 @@ function generateMasterIndex(
   ).join('\n');
 
   const sessionLine = sessionSlug ? `\n**Session**: ${sessionSlug}` : '';
+  const tagsLine = tags.length > 0 ? `\n**Tags**: ${tags.map(t => '\`' + t + '\`').join(', ')}` : '';
+
+  // Build "Topics in This Session" section when tags are present
+  const topicsSection = tags.length > 0 ? `
+## Topics in This Session
+
+This session covers ${tags.length} topic${tags.length > 1 ? 's' : ''}:
+
+${tags.map(tag => `### \`${tag}\`
+
+| Document | Relevance |
+|----------|-----------|
+| <!-- INVESTIGATE: Which docs cover this topic? --> | Primary / Supporting |`).join('\n\n')}
+
+---
+` : '';
 
   return `# Master Index — ${projectName}
 
 **Project**: ${projectName}
 **Version**: ${version}
 **Framework**: @dabighomie/handoff-framework v${VERSION}
-**Naming Version**: v2.1 (numeric-first)${sessionLine}
+**Naming Version**: v2.1 (numeric-first)${sessionLine}${tagsLine}
 **Last Updated**: ${today}
 
 ---
@@ -184,7 +212,7 @@ function generateMasterIndex(
 **Status**: <!-- INVESTIGATE: Check deployment config, Vercel/Netlify, or git tags -->
 
 ---
-
+${topicsSection}
 ## Quick Start (New Agent)
 
 1. Read this file — Navigation hub
@@ -248,15 +276,16 @@ ${optRows}
 
 async function main(): Promise<void> {
   const rawArgs = process.argv.slice(2);
-  const { sessionSlug, remainingArgs } = parseSessionArg(rawArgs);
+  const { sessionSlug, remainingArgs: afterSession } = parseSessionArg(rawArgs);
+  const { tags, remainingArgs } = parseTagsArg(afterSession);
   const projectName = remainingArgs[0];
 
   if (!projectName) {
     log.error('Project name required');
     console.log('');
-    console.log('Usage: npx tsx src/init-project.mts <project-name> [--session <slug>]');
+    console.log('Usage: npx tsx src/init-project.mts <project-name> [--session <slug>] [--tags <csv>]');
     console.log('Examples:');
-    console.log('  npx tsx src/init-project.mts damieus-com-migration --session 20x-e2e-integration');
+    console.log('  npx tsx src/init-project.mts damieus-com-migration --session 20x-e2e --tags checkout,stripe');
     console.log('  npx tsx src/init-project.mts one4three-co-next-app');
     process.exit(1);
   }
@@ -290,7 +319,7 @@ async function main(): Promise<void> {
   // Step 3: Copy v2.1 templates
   log.info('Copying numbered templates...');
   const templatesDir = join(frameworkDir, 'templates');
-  const { copied, skipped } = await copyTemplates(templatesDir, handoffDir, today);
+  const { copied, skipped } = await copyTemplates(templatesDir, handoffDir, today, tags);
   log.success(`Copied ${copied} templates, skipped ${skipped} existing`);
   console.log('');
 
@@ -303,7 +332,7 @@ async function main(): Promise<void> {
     log.info('Creating .handoff.config.json...');
     const version = await getProjectVersion(projectDir);
     const techStack = await detectTechStack(projectDir);
-    const config = buildConfig(projectName, version, techStack, sessionSlug);
+    const config = buildConfig(projectName, version, techStack, sessionSlug, tags);
     await writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8');
     log.success('Created .handoff.config.json');
   }
@@ -317,7 +346,7 @@ async function main(): Promise<void> {
     log.info(`Creating ${masterIndexFilename}...`);
     const version = await getProjectVersion(projectDir);
     const techStack = await detectTechStack(projectDir);
-    const content = generateMasterIndex(projectName, version, techStack, today, sessionSlug);
+    const content = generateMasterIndex(projectName, version, techStack, today, sessionSlug, tags);
     await writeFile(masterIndexPath, content, 'utf-8');
     log.success(`Created ${masterIndexFilename}`);
   }

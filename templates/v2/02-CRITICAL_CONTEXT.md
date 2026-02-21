@@ -1,3 +1,10 @@
+---
+tags: []
+topic: ""
+created: "{{DATE}}"
+sequence: 2
+category: "context"
+---
 # Critical Context — {{PROJECT_NAME}}
 
 **Category**: Core (CO)  

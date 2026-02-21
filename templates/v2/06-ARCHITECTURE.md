@@ -1,3 +1,10 @@
+---
+tags: []
+topic: ""
+created: "{{DATE}}"
+sequence: 6
+category: "findings"
+---
 # System Architecture — {{PROJECT_NAME}}
 
 **Category**: Architecture (AR)  

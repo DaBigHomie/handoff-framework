@@ -1,3 +1,10 @@
+---
+tags: []
+topic: ""
+created: "{{DATE}}"
+sequence: 8
+category: "findings"
+---
 # Route Audit — {{PROJECT_NAME}}
 
 **Project**: {{PROJECT_NAME}}

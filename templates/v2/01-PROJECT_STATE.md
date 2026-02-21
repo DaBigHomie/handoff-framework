@@ -1,3 +1,10 @@
+---
+tags: []
+topic: ""
+created: "{{DATE}}"
+sequence: 1
+category: "context"
+---
 # Project State — {{PROJECT_NAME}}
 
 **Category**: Core (CO)  

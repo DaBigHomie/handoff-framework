@@ -1,3 +1,10 @@
+---
+tags: []
+topic: ""
+created: "{{DATE}}"
+sequence: 0
+category: "context"
+---
 # Master Index — {{PROJECT_NAME}}
 
 **Category**: Core (CO)  

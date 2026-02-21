@@ -25,17 +25,61 @@ Create handoff docs for the **current chat session** — what you know, what hap
 - Look for existing docs, scripts, test files
 - Identify blockers, gotchas, and failed experiments
 
-## Step 2: Scaffold
+## Step 2: Suggest Tags (MANDATORY — Do Not Skip)
+
+Before scaffolding, **analyze the conversation and codebase** to suggest tags:
+
+1. **Scan context**: Review what this session worked on — features, bugs, refactors, systems, tools, integrations.
+2. **Check existing tags**: If `docs/HANDOFF_TAG_INDEX.md` exists, read it. **Reuse existing tags** before inventing new ones to keep the index consistent.
+3. **Propose 3-5 tags**: Pick the most specific, meaningful tags. Prefer existing tags from the index when they match.
+4. **Ask the user to confirm**:
+
+   > I suggest these session tags: `tag-a`, `tag-b`, `tag-c`
+   >
+   > These will be applied to all handoff docs for cross-session discovery.
+   > Want to adjust, add, or remove any before I scaffold?
+
+5. **Wait for confirmation** before proceeding to Step 3.
+
+**Tag format**: kebab-case, 2-50 chars (e.g., `checkout-flow`, `supabase`, `e2e-tests`)
+
+### How to Pick Good Tags
+
+| Signal in Conversation | Suggested Tag |
+|------------------------|---------------|
+| Worked on checkout/cart | `checkout-flow`, `cart` |
+| Database migrations ran | `db-migration` |
+| E2E or unit tests written | `e2e-tests`, `unit-tests` |
+| Supabase queries/types | `supabase` |
+| Bug fix for specific feature | `bugfix`, `{feature-name}` |
+| New component or page added | `ui-components`, `{page-name}` |
+| CI/CD or workflow changes | `ci-cd`, `github-actions` |
+| Stripe/payment integration | `stripe`, `payments` |
+| Refactor or architecture | `refactor`, `architecture` |
+| Documentation updates | `docs`, `handoff` |
+
+## Step 3: Scaffold
 
 ```bash
 cd .handoff-framework
-npx tsx src/init-project.mts <PROJECT_PATH> --session <slug>
+npx tsx src/init-project.mts <PROJECT_PATH> --session <slug> --tags <csv>
 ```
 
 Generates a `docs/handoff-{slug}/` folder with template stubs.
 The `--session` slug should describe the work (e.g., `checkout-refactor`, `20x-e2e-integration`).
+The `--tags` flag applies the **user-confirmed tags** from Step 2 to YAML frontmatter in every doc (e.g., `--tags checkout,stripe,db-migration`).
 
-## Step 3: Auto-Generate Project State
+### Tag Refinement After Scaffolding
+
+Tags set via `--tags` are session-wide defaults. After filling docs, **update individual doc frontmatter** if a doc is more specific to one topic than others.
+
+**Generate cross-session index** (run after all docs are filled):
+```bash
+npx tsx src/tag-index.mts <PROJECT_PATH>
+# Output: <PROJECT_PATH>/docs/HANDOFF_TAG_INDEX.md
+```
+
+## Step 4: Auto-Generate Project State
 
 ```bash
 npx tsx src/generate-state.mts <PROJECT_PATH> --session <slug>
@@ -43,7 +87,7 @@ npx tsx src/generate-state.mts <PROJECT_PATH> --session <slug>
 
 Populates `01-PROJECT_STATE` with file counts, dependency list, TypeScript status, etc.
 
-## Step 4: Fill Docs by Investigating (NOT Copying Templates)
+## Step 5: Fill Docs by Investigating (NOT Copying Templates)
 
 Work through docs in reading order. For each, **investigate the codebase** and write what you found.
 
@@ -84,12 +128,13 @@ Work through docs in reading order. For each, **investigate the codebase** and w
 
 **Not all docs are needed.** Skip findings/reference docs that don't apply to the session's scope. Required: 00-05. Optional: 06-14.
 
-## Step 5: Validate
+## Step 6: Validate & Index
 
 ```bash
 npx tsx src/validate-naming.mts <PROJECT_PATH> --session <slug>
 npx tsx src/validate-docs.mts <PROJECT_PATH> --session <slug>
 node scripts/validate-quality.js <PROJECT_PATH>/docs/handoff-<slug>/  # Handoff quality: target 75%+
+npx tsx src/tag-index.mts <PROJECT_PATH>                              # Regenerate tag index (if using tags)
 ```
 
 ## Naming Convention

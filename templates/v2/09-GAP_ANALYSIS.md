@@ -1,3 +1,10 @@
+---
+tags: []
+topic: ""
+created: "{{DATE}}"
+sequence: 9
+category: "findings"
+---
 # Comprehensive Gap Analysis — {{PROJECT_NAME}}
 
 **Project**: {{PROJECT_NAME}}

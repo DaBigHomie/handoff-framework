@@ -9,6 +9,29 @@
  * - Numeric-first naming convention
  */
 
+// ─── Tags (multi-topic session support) ─────────────────────────────
+
+/** Free-form kebab-case tag for multi-topic sessions */
+export type HandoffTag = string;
+
+/** Tag slug must be kebab-case: lowercase alphanumeric + hyphens */
+export const TAG_SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/** Validate a tag string */
+export function isValidTag(tag: string): boolean {
+  return TAG_SLUG_REGEX.test(tag) && tag.length >= 2 && tag.length <= 50;
+}
+
+/** YAML frontmatter structure for handoff documents */
+export interface HandoffDocFrontmatter {
+  tags: HandoffTag[];
+  /** Primary topic this doc addresses (optional — some docs span multiple) */
+  topic?: string;
+  created: string;
+  sequence: number;
+  category: DocCategory;
+}
+
 // ─── Document Categories (metadata inside files, NOT in filenames) ────
 export const DOC_CATEGORIES = ['context', 'session', 'findings', 'reference'] as const;
 export type DocCategory = typeof DOC_CATEGORIES[number];
@@ -109,6 +132,8 @@ export interface HandoffConfig {
   repositoryUrl?: string;
   /** Session slug — describes what this handoff covers (e.g. "20x-e2e-integration") */
   sessionSlug?: string;
+  /** Tags for multi-topic sessions — applied to all docs unless overridden per-file */
+  tags?: HandoffTag[];
   framework: {
     version: string;
     namingVersion: 'v2' | 'v2.1';

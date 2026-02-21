@@ -63,6 +63,7 @@ const WEIGHTS = {
   metadata:     0.10,  // Date, session, status info
   coverage:     0.10,  // Category coverage (context + session + findings)
   investigation: 0.10, // Evidence of investigation (not template fill)
+  // tag quality is a bonus (up to +5 points) — does not penalize untagged docs
 };
 
 const QUALITY_RUBRIC = {
@@ -250,7 +251,33 @@ class HandoffQualityValidator {
     if (hasNoGeneric) investigationScore += 2;
     breakdown.investigation = Math.min(10, investigationScore);
 
-    const total = Object.values(breakdown).reduce((sum, v) => sum + v, 0);
+    // 9. Tag quality (bonus: up to +5 points, does not penalize untagged docs)
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    let tagBonus = 0;
+    if (frontmatterMatch) {
+      tagBonus += 1; // Has frontmatter block
+      const fmBlock = frontmatterMatch[1];
+      const tagsLineMatch = fmBlock.match(/^tags:\s*\[([^\]]*)\]/m);
+      if (tagsLineMatch) {
+        const tagsStr = tagsLineMatch[1].trim();
+        if (tagsStr.length > 0) {
+          const tagList = tagsStr.split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
+          tagBonus += 2; // Has at least one tag
+          // Validate kebab-case
+          const validKebab = tagList.every(t => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(t));
+          if (validKebab) tagBonus += 1;
+          // Bonus if tags appear in document content (tag relevance)
+          const bodyAfterFm = content.slice(frontmatterMatch[0].length);
+          const tagsMentioned = tagList.filter(t =>
+            new RegExp(t.replace(/-/g, '[\\s-]'), 'i').test(bodyAfterFm)
+          );
+          if (tagsMentioned.length > 0) tagBonus += 1;
+        }
+      }
+    }
+    breakdown.tagBonus = tagBonus;
+
+    const total = Math.min(100, Object.values(breakdown).reduce((sum, v) => sum + v, 0));
 
     return { total: Math.round(total), _breakdown: breakdown };
   }
@@ -413,6 +440,7 @@ class HandoffQualityValidator {
         if (bd.crossRefs < 5) console.log(`    • Reference other handoff docs by filename`);
         if (bd.metadata < 6) console.log(`    • Add date, session context, and status info`);
         if (bd.investigation < 5) console.log(`    • Include specific data (counts, file paths, concrete findings)`);
+        if (bd.tagBonus !== undefined && bd.tagBonus < 3) console.log(`    • Add YAML frontmatter with tags: [topic1, topic2] for cross-session discovery`);
       }
       console.log('');
     }

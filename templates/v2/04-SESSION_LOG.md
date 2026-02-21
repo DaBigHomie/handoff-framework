@@ -1,3 +1,10 @@
+---
+tags: []
+topic: ""
+created: "{{DATE}}"
+sequence: 4
+category: "session"
+---
 # Session Log — {{PROJECT_NAME}}
 
 **Project**: {{PROJECT_NAME}}
@@ -30,6 +37,16 @@ Track what was completed, skipped, and what information is outdated. Document fa
 | # | Work Item | Reason | Revisit? |
 |---|-----------|--------|----------|
 | 1 | <!-- INVESTIGATE --> | [reason skipped] | Yes/No |
+
+### Topic Transitions
+
+> Track when the session switches between topics. Helps future agents understand the conversation flow and which docs cover which topics.
+
+| # | Time/Phase | From Topic | To Topic | Trigger | Docs Affected |
+|---|------------|-----------|----------|---------|---------------|
+| 1 | [timestamp or phase] | [previous topic] | [new topic] | [what caused the switch] | [doc sequence numbers] |
+
+**Tags applied to this session**: <!-- list tags from frontmatter or --tags flag -->
 
 ### Outdated Information Discovered
 

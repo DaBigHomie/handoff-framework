@@ -1,3 +1,10 @@
+---
+tags: []
+topic: ""
+created: "{{DATE}}"
+sequence: 11
+category: "findings"
+---
 # Scripts Reference — {{PROJECT_NAME}}
 
 **Project**: {{PROJECT_NAME}}

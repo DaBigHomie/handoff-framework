@@ -1,3 +1,10 @@
+---
+tags: []
+topic: ""
+created: "{{DATE}}"
+sequence: 7
+category: "findings"
+---
 # Component Interaction Map — {{PROJECT_NAME}}
 
 **Project**: {{PROJECT_NAME}}

@@ -9,7 +9,14 @@ import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { buildDocsPath, CANONICAL_DOCS_PREFIX, CANONICAL_DOCS_BASE } from './types.js';
+import {
+  buildDocsPath,
+  CANONICAL_DOCS_PREFIX,
+  CANONICAL_DOCS_BASE,
+  type HandoffDocFrontmatter,
+  type DocCategory,
+  getCategoryForSequence,
+} from './types.js';
 
 export const execAsync = promisify(exec);
 
@@ -207,4 +214,129 @@ export function formatTable(headers: string[], rows: string[][]): string {
     lines.push(`| ${row.join(' | ')} |`);
   }
   return lines.join('\n');
+}
+
+// ─── YAML Frontmatter ───────────────────────────────────────────
+
+const FRONTMATTER_REGEX = /^---\n([\s\S]*?)\n---\n?/;
+
+/**
+ * Parse YAML frontmatter from markdown content.
+ * Returns frontmatter fields and body (content after frontmatter).
+ * Returns null frontmatter if no `---` block found.
+ */
+export function parseFrontmatter(content: string): {
+  frontmatter: HandoffDocFrontmatter | null;
+  body: string;
+} {
+  const match = content.match(FRONTMATTER_REGEX);
+  if (!match) return { frontmatter: null, body: content };
+
+  const yamlBlock = match[1];
+  const body = content.slice(match[0].length);
+
+  // Simple YAML parser for known flat keys (no external deps)
+  const fm: Record<string, unknown> = {};
+  for (const line of yamlBlock.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const colonIdx = trimmed.indexOf(':');
+    if (colonIdx === -1) continue;
+
+    const key = trimmed.slice(0, colonIdx).trim();
+    let value: unknown = trimmed.slice(colonIdx + 1).trim();
+
+    // Parse inline arrays: [tag1, tag2]
+    if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+      const inner = value.slice(1, -1).trim();
+      value = inner
+        ? inner.split(',').map((s: string) => s.trim().replace(/^["']|["']$/g, ''))
+        : [];
+    }
+    // Strip quotes
+    else if (typeof value === 'string' && /^["'].*["']$/.test(value)) {
+      value = value.slice(1, -1);
+    }
+    // Parse numbers
+    else if (typeof value === 'string' && /^\d+$/.test(value)) {
+      value = parseInt(value, 10);
+    }
+
+    fm[key] = value;
+  }
+
+  const frontmatter: HandoffDocFrontmatter = {
+    tags: Array.isArray(fm.tags) ? fm.tags as string[] : [],
+    topic: typeof fm.topic === 'string' && fm.topic !== '' ? fm.topic : undefined,
+    created: typeof fm.created === 'string' ? fm.created : '',
+    sequence: typeof fm.sequence === 'number' ? fm.sequence : -1,
+    category: typeof fm.category === 'string' ? fm.category as DocCategory : 'context',
+  };
+
+  return { frontmatter, body };
+}
+
+/**
+ * Serialize a HandoffDocFrontmatter to a `---` YAML block string.
+ */
+export function serializeFrontmatter(fm: HandoffDocFrontmatter): string {
+  const lines = ['---'];
+  const tagsStr = fm.tags.length > 0
+    ? `[${fm.tags.join(', ')}]`
+    : '[]';
+  lines.push(`tags: ${tagsStr}`);
+  if (fm.topic) {
+    lines.push(`topic: "${fm.topic}"`);
+  }
+  lines.push(`created: "${fm.created}"`);
+  lines.push(`sequence: ${fm.sequence}`);
+  lines.push(`category: "${fm.category}"`);
+  lines.push('---');
+  return lines.join('\n');
+}
+
+/**
+ * Inject frontmatter into content. If frontmatter already exists, replaces it.
+ */
+export function injectFrontmatter(
+  content: string,
+  fm: HandoffDocFrontmatter,
+): string {
+  const { body } = parseFrontmatter(content);
+  return serializeFrontmatter(fm) + '\n' + body;
+}
+
+/**
+ * Build default frontmatter for a template at init time.
+ */
+export function buildDefaultFrontmatter(
+  sequence: number,
+  date: string,
+  tags: string[] = [],
+): HandoffDocFrontmatter {
+  return {
+    tags,
+    created: date,
+    sequence,
+    category: getCategoryForSequence(sequence),
+  };
+}
+
+// ─── Tag CLI Argument Parsing ────────────────────────────────────
+
+/**
+ * Parse --tags <csv> from CLI args.
+ * Accepts: --tags checkout,stripe,db-migration
+ * Returns: { tags: ['checkout', 'stripe', 'db-migration'], remainingArgs }
+ */
+export function parseTagsArg(args: string[]): { tags: string[]; remainingArgs: string[] } {
+  const idx = args.indexOf('--tags');
+  if (idx === -1 || idx + 1 >= args.length) {
+    return { tags: [], remainingArgs: args };
+  }
+  const raw = args[idx + 1];
+  const tags = raw.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
+  const remainingArgs = [...args.slice(0, idx), ...args.slice(idx + 2)];
+  return { tags, remainingArgs };
 }

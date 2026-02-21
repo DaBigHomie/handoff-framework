@@ -5,12 +5,13 @@
  * Usage: npx tsx src/cli.mts <command> [args]
  *
  * Commands:
- *   init <project> [--session <slug>]    Initialize handoff docs in a project
- *   generate <project> [--session <slug>] Auto-generate 01-PROJECT_STATE
- *   validate <project> [--session <slug>] Validate doc standards and naming
- *   migrate <project> [--session <slug>]  Migrate legacy docs to numeric naming
- *   version                                Show framework version
- *   help                                   Show help
+ *   init <project> [--session <slug>] [--tags <csv>]  Initialize handoff docs
+ *   generate <project> [--session <slug>]              Auto-generate 01-PROJECT_STATE
+ *   validate <project> [--session <slug>]              Validate doc standards and naming
+ *   migrate <project> [--session <slug>]               Migrate legacy docs to numeric naming
+ *   tag-index <project>                                Generate cross-session tag index
+ *   version                                            Show framework version
+ *   help                                               Show help
  */
 
 import { join, dirname } from 'path';
@@ -24,8 +25,13 @@ const __dirname = dirname(__filename);
 const COMMANDS: Record<string, { description: string; usage: string; script: string }> = {
   init: {
     description: 'Initialize handoff docs (creates docs/handoff-{session}/ with numbered templates)',
-    usage: 'npx tsx src/cli.mts init <project-name> [--session <slug>]',
+    usage: 'npx tsx src/cli.mts init <project-name> [--session <slug>] [--tags <csv>]',
     script: 'init-project.mts',
+  },
+  'tag-index': {
+    description: 'Generate cross-session tag index (scans all handoff-* folders)',
+    usage: 'npx tsx src/cli.mts tag-index <project-name>',
+    script: 'tag-index.mts',
   },
   generate: {
     description: 'Auto-generate 01-PROJECT_STATE from codebase analysis',
@@ -62,7 +68,7 @@ const COMMANDS: Record<string, { description: string; usage: string; script: str
 function showHelp(): void {
   console.log('');
   log.header(`Handoff Framework v${VERSION}`);
-  console.log('Usage: npx tsx src/cli.mts <command> [project-name] [--session <slug>]');
+  console.log('Usage: npx tsx src/cli.mts <command> [project-name] [--session <slug>] [--tags <csv>]');
   console.log('');
   console.log('Commands:');
   for (const [name, cmd] of Object.entries(COMMANDS)) {
@@ -72,10 +78,14 @@ function showHelp(): void {
   console.log('Options:');
   console.log('  --session <slug>    Session name for folder (e.g. "20x-e2e-integration")');
   console.log('                      Creates: docs/handoff-{slug}/ instead of docs/handoff/');
+  console.log('  --tags <csv>        Comma-separated topic tags (e.g. "checkout,stripe,db-migration")');
+  console.log('                      Tags are added to YAML frontmatter in each generated doc');
   console.log('');
   console.log('Examples:');
   console.log('  npx tsx src/cli.mts init damieus-com-migration --session 20x-e2e-integration');
+  console.log('  npx tsx src/cli.mts init damieus-com-migration --session checkout --tags checkout,stripe,payments');
   console.log('  npx tsx src/cli.mts init one4three-co-next-app');
+  console.log('  npx tsx src/cli.mts tag-index damieus-com-migration');
   console.log('  npx tsx src/cli.mts validate flipflops-sundays-reboot --session checkout-refactor');
   console.log('  npx tsx src/cli.mts version');
   console.log('');
