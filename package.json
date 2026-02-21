@@ -1,0 +1,46 @@
+{
+    "name": "@dabighomie/handoff-framework",
+    "version": "2.0.0",
+    "description": "Portable handoff documentation framework for agent-to-agent knowledge transfer with FSD naming convention",
+    "type": "module",
+    "main": "src/cli.mts",
+    "bin": {
+        "handoff": "bin/handoff.mjs"
+    },
+    "scripts": {
+        "init": "tsx src/init-project.mts",
+        "generate": "tsx src/generate-state.mts",
+        "validate": "tsx src/validate-docs.mts",
+        "validate:naming": "tsx src/validate-naming.mts",
+        "migrate": "tsx src/migrate-existing.mts",
+        "cli": "tsx src/cli.mts",
+        "test": "node --import tsx --test tests/**/*.spec.ts",
+        "typecheck": "tsc --noEmit",
+        "build": "tsc",
+        "version:bump": "tsx src/version-bump.mts"
+    },
+    "keywords": [
+        "handoff",
+        "documentation",
+        "agent",
+        "copilot",
+        "fsd",
+        "framework"
+    ],
+    "author": "DaBigHomie",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DaBigHomie/handoff-framework.git"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "dependencies": {
+        "tsx": "^4.7.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0",
+        "typescript": "^5.3.3"
+    }
+}
