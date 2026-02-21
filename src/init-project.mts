@@ -57,7 +57,7 @@ async function copyTemplates(
 
   for (const tpl of allTemplates) {
     const srcFilename = `${tpl.filename}.md`;
-    const srcPath = join(templatesDir, 'v2', srcFilename);
+    const srcPath = join(templatesDir, 'v3', srcFilename);
 
     const outFilename = `${tpl.filename}_${today}.md`;
     const outPath = join(handoffDir, outFilename);
@@ -110,7 +110,7 @@ function buildConfig(
     tags: tags.length > 0 ? tags : undefined,
     framework: {
       version: VERSION,
-      namingVersion: 'v2.1',
+      namingVersion: 'v3',
       docsPath,
       masterIndexPath: `${docsPath}/00-MASTER_INDEX_${today}.md`,
       tokenBudget: {
@@ -199,7 +199,7 @@ ${tags.map(tag => `### \`${tag}\`
 **Project**: ${projectName}
 **Version**: ${version}
 **Framework**: @dabighomie/handoff-framework v${VERSION}
-**Naming Version**: v2.1 (numeric-first)${sessionLine}${tagsLine}
+**Naming Version**: v3 (numeric-first)${sessionLine}${tagsLine}
 **Last Updated**: ${today}
 
 ---
@@ -316,7 +316,7 @@ async function main(): Promise<void> {
   }
   console.log('');
 
-  // Step 3: Copy v2.1 templates
+  // Step 3: Copy v3 templates
   log.info('Copying numbered templates...');
   const templatesDir = join(frameworkDir, 'templates');
   const { copied, skipped } = await copyTemplates(templatesDir, handoffDir, today, tags);

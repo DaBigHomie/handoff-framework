@@ -15,7 +15,7 @@ import {
   todayISO,
 } from '../src/types.js';
 
-// ─── NUMERIC_FILENAME_REGEX (v2.1 format) ────────────────────────
+// ─── NUMERIC_FILENAME_REGEX (v3 format) ──────────────────────────
 
 describe('NUMERIC_FILENAME_REGEX', () => {
   const validFilenames = [
@@ -98,7 +98,7 @@ describe('FSD_FILENAME_REGEX (legacy)', () => {
     assert.ok(FSD_FILENAME_REGEX.test('RF-04-IMPROVEMENTS_2026-02-20.md'));
   });
 
-  it('rejects v2.1 format (no prefix)', () => {
+  it('rejects v3 format (no prefix)', () => {
     assert.ok(!FSD_FILENAME_REGEX.test('00-MASTER_INDEX_2026-02-20.md'));
   });
 });

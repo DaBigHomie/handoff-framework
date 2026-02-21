@@ -238,8 +238,8 @@ async function validateProject(
       if (!config.qualityGates) {
         addIssue('error', 'Missing qualityGates in .handoff.config.json', undefined, 'config');
       }
-      if (config.framework?.namingVersion !== 'v2.1') {
-        addIssue('warning', 'Config namingVersion not set to "v2.1"', undefined, 'config');
+      if (config.framework?.namingVersion !== 'v3') {
+        addIssue('warning', 'Config namingVersion not set to "v3"', undefined, 'config');
       }
     } catch {
       addIssue('error', '.handoff.config.json is invalid JSON', undefined, 'config');

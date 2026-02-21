@@ -66,7 +66,7 @@ export function getCategoryForSequence(seq: number): DocCategory {
   return 'reference';
 }
 
-// ─── Legacy FSD Support (for migration from v2.0 → v2.1) ────────
+// ─── Legacy FSD Support (for migration from v2 → v3) ─────────────
 export const FSD_CATEGORIES = ['CO', 'AR', 'OP', 'QA', 'RF'] as const;
 export type FsdCategory = typeof FSD_CATEGORIES[number];
 
@@ -78,12 +78,12 @@ export const FSD_CATEGORY_NAMES: Record<FsdCategory, string> = {
   RF: 'Reference',
 };
 
-/** Legacy regex — matches v2.0 filenames like CO-00-MASTER_INDEX_2026-02-20.md */
+/** Legacy regex — matches v2 filenames like CO-00-MASTER_INDEX_2026-02-20.md */
 export const FSD_FILENAME_REGEX = /^(CO|AR|OP|QA|RF)-(\d{2})-([A-Z][A-Z0-9_]+)_(\d{4}-\d{2}-\d{2})\.md$/;
 
-// ─── Numeric-First Naming (v2.1) ────────────────────────────────
+// ─── Numeric-First Naming (v3) ──────────────────────────────────
 
-/** Regex for v2.1 filenames: 00-MASTER_INDEX_2026-02-20.md */
+/** Regex for v3 filenames: 00-MASTER_INDEX_2026-02-20.md */
 export const NUMERIC_FILENAME_REGEX = /^(\d{2})-([A-Z][A-Z0-9_]+)_(\d{4}-\d{2}-\d{2})\.md$/;
 
 /** Base directory for all handoff folders */
@@ -136,7 +136,7 @@ export interface HandoffConfig {
   tags?: HandoffTag[];
   framework: {
     version: string;
-    namingVersion: 'v2' | 'v2.1';
+    namingVersion: 'v2' | 'v3';
     /** Resolved folder path (e.g. "docs/handoff-20x-e2e-integration") */
     docsPath: string;
     masterIndexPath: string;
@@ -188,7 +188,7 @@ export interface TemplateMetadata {
 }
 
 /**
- * Required docs for every session handoff (v2.1)
+ * Required docs for every session handoff (v3)
  *
  * Ordered by reading priority — an agent scans 00 → 05 first.
  *

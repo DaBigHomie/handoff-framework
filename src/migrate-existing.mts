@@ -1,11 +1,11 @@
 #!/usr/bin/env node --no-warnings
 /**
- * migrate-existing.mts — Migrate existing project docs to numeric v2.1 naming
+ * migrate-existing.mts — Migrate existing project docs to numeric v3 naming
  *
  * Supports three migration paths:
- *   v1 (bare names in docs/.handoff/)     to v2.1 numeric (docs/handoff[-slug]/)
- *   v2 (FSD prefix in docs/handoff/)      to v2.1 numeric (docs/handoff[-slug]/)
- *   bare (docs/handoff-* unstructured)    to v2.1 numeric (same folder)
+ *   v1 (bare names in docs/.handoff/)     to v3 numeric (docs/handoff[-slug]/)
+ *   v2 (FSD prefix in docs/handoff/)      to v3 numeric (docs/handoff[-slug]/)
+ *   bare (docs/handoff-* unstructured)    to v3 numeric (same folder)
  *
  * Usage: npx tsx src/migrate-existing.mts [project-name] [--session slug]
  * Example: npx tsx src/migrate-existing.mts damieus-com-migration --session 20x-e2e
@@ -48,7 +48,7 @@ interface MigrationRule {
 }
 
 /**
- * Rules for converting bare/v1 filenames → v2.1 numeric naming.
+ * Rules for converting bare/v1 filenames → v3 numeric naming.
  * Also converts v2 FSD-prefixed files by stripping the prefix.
  */
 const MIGRATION_RULES: MigrationRule[] = [
@@ -98,14 +98,14 @@ interface MigrationAction {
 }
 
 function computeNewName(filename: string, today: string): MigrationAction {
-  // Already v2.1 numeric-named — skip
+  // Already v3 numeric-named — skip
   if (NUMERIC_FILENAME_REGEX.test(filename)) {
     return {
       oldName: filename,
       newName: filename,
       rule: null,
       action: 'skip',
-      reason: 'Already numeric-named (v2.1)',
+      reason: 'Already numeric-named (v3)',
     };
   }
 
@@ -151,7 +151,7 @@ async function createBackup(
   return backupDir;
 }
 
-// ─── Migration Log (v2.1) ────────────────────────────────────────
+// ─── Migration Log (v3) ──────────────────────────────────────────
 
 function generateMigrationLog(
   projectName: string,
@@ -170,7 +170,7 @@ function generateMigrationLog(
 **Project**: ${projectName}
 **Migration Date**: ${today}${sessionSlug ? `\n**Session**: ${sessionSlug}` : ''}
 **Framework**: @dabighomie/handoff-framework v${VERSION}
-**Naming**: v2.1 (numeric-first)
+**Naming**: v3 (numeric-first)
 
 ---
 
@@ -207,7 +207,7 @@ ${manual.map((a) => `- **${a.oldName}**: ${a.reason}`).join('\n') || '*None*'}
 
 ---
 
-## Numeric Naming Reference (v2.1)
+## Numeric Naming Reference (v3)
 
 | Range | Category | Description |
 |-------|----------|-------------|
@@ -253,7 +253,7 @@ async function main(): Promise<void> {
     console.log('  npx tsx src/migrate-existing.mts damieus-com-migration --session 20x-e2e-integration');
     console.log('  npx tsx src/migrate-existing.mts damieus-com-migration');
     console.log('');
-    console.log('Migrates FSD-named or bare-named docs to numeric v2.1 naming.');
+    console.log('Migrates FSD-named or bare-named docs to numeric v3 naming.');
     console.log('With --session, output goes to docs/handoff-<slug>/');
     process.exit(1);
   }
@@ -262,7 +262,7 @@ async function main(): Promise<void> {
   const projectDir = resolveProjectDir(frameworkDir, projectName);
   const today = todayISO();
 
-  log.header(`Migrating handoff docs to numeric v2.1 for: ${projectName}`);
+  log.header(`Migrating handoff docs to numeric v3 for: ${projectName}`);
   if (sessionSlug) log.info(`Session: ${sessionSlug}`);
   console.log('');
 
@@ -427,7 +427,7 @@ async function main(): Promise<void> {
   4. Commit:
      cd ${projectName}
      git add ${targetLabel}/
-     git commit -m "docs: migrate handoff docs to numeric v2.1 naming"
+     git commit -m "docs: migrate handoff docs to numeric v3 naming"
 `);
 }
 

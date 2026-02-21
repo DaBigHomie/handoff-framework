@@ -8,7 +8,7 @@
 You are using `@dabighomie/handoff-framework` v3.0.0 — a portable, session-aware handoff documentation system with 15 templates ordered by numeric sequence.
 
 **Framework location**: `.handoff-framework/` (relative to workspace root)
-**Template location**: `.handoff-framework/templates/v2/`
+**Template location**: `.handoff-framework/templates/v3/`
 **Output location**: `docs/handoff-{session-slug}/` (in the target project)
 
 ## Your Mission
