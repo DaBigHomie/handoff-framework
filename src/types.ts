@@ -5,10 +5,45 @@
  * - Config schema (.handoff.config.json)
  * - Validation results
  * - Template metadata
- * - FSD naming categories
+ * - Document categories (metadata, not filename-based)
+ * - Numeric-first naming convention
  */
 
-// ─── FSD Categories ──────────────────────────────────────────────
+// ─── Document Categories (metadata inside files, NOT in filenames) ────
+export const DOC_CATEGORIES = ['context', 'session', 'findings', 'reference'] as const;
+export type DocCategory = typeof DOC_CATEGORIES[number];
+
+export const DOC_CATEGORY_NAMES: Record<DocCategory, string> = {
+  context: 'Context',
+  session: 'Session',
+  findings: 'Findings',
+  reference: 'Reference',
+};
+
+export const DOC_CATEGORY_DESCRIPTIONS: Record<DocCategory, string> = {
+  context: 'Project state, critical context, master index — agent reads first',
+  session: 'What happened this session: tasks, log, next steps',
+  findings: 'What was discovered: architecture, routes, gaps, tests',
+  reference: 'Lookups and tools: file maps, prompts, improvements',
+};
+
+/** Numeric ranges define implicit category grouping */
+export const DOC_CATEGORY_RANGES: Record<DocCategory, { min: number; max: number }> = {
+  context: { min: 0, max: 2 },
+  session: { min: 3, max: 5 },
+  findings: { min: 6, max: 11 },
+  reference: { min: 12, max: 14 },
+};
+
+/** Infer category from sequence number */
+export function getCategoryForSequence(seq: number): DocCategory {
+  if (seq <= 2) return 'context';
+  if (seq <= 5) return 'session';
+  if (seq <= 11) return 'findings';
+  return 'reference';
+}
+
+// ─── Legacy FSD Support (for migration from v2.0 → v2.1) ────────
 export const FSD_CATEGORIES = ['CO', 'AR', 'OP', 'QA', 'RF'] as const;
 export type FsdCategory = typeof FSD_CATEGORIES[number];
 
@@ -20,18 +55,42 @@ export const FSD_CATEGORY_NAMES: Record<FsdCategory, string> = {
   RF: 'Reference',
 };
 
-export const FSD_CATEGORY_DESCRIPTIONS: Record<FsdCategory, string> = {
-  CO: 'Project state, critical context, master index — read first',
-  AR: 'System design, data flows, component maps',
-  OP: 'Deployment, CI/CD, automation, scripts',
-  QA: 'Testing framework, test-IDs, gap analysis',
-  RF: 'Route maps, feature status, file lookups',
-};
-
-/** Regex for valid FSD filenames: CO-00-MASTER_INDEX_2026-02-20.md */
+/** Legacy regex — matches v2.0 filenames like CO-00-MASTER_INDEX_2026-02-20.md */
 export const FSD_FILENAME_REGEX = /^(CO|AR|OP|QA|RF)-(\d{2})-([A-Z][A-Z0-9_]+)_(\d{4}-\d{2}-\d{2})\.md$/;
 
-/** Docs must live at this canonical path relative to project root */
+// ─── Numeric-First Naming (v2.1) ────────────────────────────────
+
+/** Regex for v2.1 filenames: 00-MASTER_INDEX_2026-02-20.md */
+export const NUMERIC_FILENAME_REGEX = /^(\d{2})-([A-Z][A-Z0-9_]+)_(\d{4}-\d{2}-\d{2})\.md$/;
+
+/** Base directory for all handoff folders */
+export const CANONICAL_DOCS_BASE = 'docs';
+
+/** Prefix for handoff folder names */
+export const CANONICAL_DOCS_PREFIX = 'handoff';
+
+/**
+ * Build the docs path for a handoff session.
+ *
+ * With slug:    docs/handoff-20x-e2e-integration
+ * Without slug: docs/handoff
+ *
+ * Real examples from damieus-com-migration:
+ *   docs/handoff-20x-e2e-integration/
+ *   docs/handoff-checkout-refactor/
+ *   docs/handoff-database-migration/
+ */
+export function buildDocsPath(sessionSlug?: string): string {
+  if (!sessionSlug) return `${CANONICAL_DOCS_BASE}/${CANONICAL_DOCS_PREFIX}`;
+  const slug = sessionSlug
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  return `${CANONICAL_DOCS_BASE}/${CANONICAL_DOCS_PREFIX}-${slug}`;
+}
+
+/** @deprecated Use buildDocsPath() instead. Kept for migration compatibility. */
 export const CANONICAL_DOCS_PATH = 'docs/handoff';
 
 // ─── Config Schema (.handoff.config.json) ────────────────────────
@@ -48,9 +107,12 @@ export interface HandoffConfig {
   description?: string;
   techStack: string[];
   repositoryUrl?: string;
+  /** Session slug — describes what this handoff covers (e.g. "20x-e2e-integration") */
+  sessionSlug?: string;
   framework: {
     version: string;
-    namingVersion: 'v1' | 'v2';
+    namingVersion: 'v2' | 'v2.1';
+    /** Resolved folder path (e.g. "docs/handoff-20x-e2e-integration") */
     docsPath: string;
     masterIndexPath: string;
     tokenBudget: {
@@ -90,171 +152,183 @@ export interface ValidationResult {
 
 // ─── Template Metadata ───────────────────────────────────────────
 export interface TemplateMetadata {
-  category: FsdCategory;
   sequence: number;
   slug: string;
   filename: string;
+  category: DocCategory;
   required: boolean;
   maxLines: number;
   tokenBudget: number;
   description: string;
 }
 
-/** Required docs for every project (v2.0 minimum) */
+/**
+ * Required docs for every session handoff (v2.1)
+ *
+ * Ordered by reading priority — an agent scans 00 → 05 first.
+ *
+ * 00-02: Context  (what do I need to know?)
+ * 03-05: Session  (what happened? what's next?)
+ */
 export const REQUIRED_TEMPLATES: TemplateMetadata[] = [
   {
-    category: 'CO',
     sequence: 0,
     slug: 'MASTER_INDEX',
-    filename: 'CO-00-MASTER_INDEX',
+    filename: '00-MASTER_INDEX',
+    category: 'context',
     required: true,
     maxLines: 500,
     tokenBudget: 1500,
-    description: 'Navigation hub — read first',
+    description: 'Navigation hub — agent reads first',
   },
   {
-    category: 'CO',
     sequence: 1,
     slug: 'PROJECT_STATE',
-    filename: 'CO-01-PROJECT_STATE',
+    filename: '01-PROJECT_STATE',
+    category: 'context',
     required: true,
     maxLines: 800,
     tokenBudget: 2000,
     description: 'Current snapshot (auto-generated)',
   },
   {
-    category: 'CO',
     sequence: 2,
     slug: 'CRITICAL_CONTEXT',
-    filename: 'CO-02-CRITICAL_CONTEXT',
+    filename: '02-CRITICAL_CONTEXT',
+    category: 'context',
     required: true,
     maxLines: 800,
     tokenBudget: 2000,
-    description: 'Must-know gotchas, failed commands, issues & recovery',
+    description: 'Must-know gotchas, failed commands, blockers',
   },
   {
-    category: 'CO',
     sequence: 3,
     slug: 'TASK_TRACKER',
-    filename: 'CO-03-TASK_TRACKER',
+    filename: '03-TASK_TRACKER',
+    category: 'session',
     required: true,
     maxLines: 1000,
     tokenBudget: 2500,
-    description: 'Unified todo — scoreboard, status.json, action items, session todos',
+    description: 'Unified todo — scoreboard, status, action items',
   },
   {
-    category: 'OP',
-    sequence: 1,
-    slug: 'DEPLOYMENT_ROADMAP',
-    filename: 'OP-01-DEPLOYMENT_ROADMAP',
+    sequence: 4,
+    slug: 'SESSION_LOG',
+    filename: '04-SESSION_LOG',
+    category: 'session',
+    required: true,
+    maxLines: 1200,
+    tokenBudget: 2500,
+    description: 'What was done, skipped, failed, and what\'s outdated',
+  },
+  {
+    sequence: 5,
+    slug: 'NEXT_STEPS',
+    filename: '05-NEXT_STEPS',
+    category: 'session',
     required: true,
     maxLines: 1000,
     tokenBudget: 2500,
-    description: 'How to deploy',
-  },
-  {
-    category: 'QA',
-    sequence: 1,
-    slug: 'TESTID_FRAMEWORK',
-    filename: 'QA-01-TESTID_FRAMEWORK',
-    required: true,
-    maxLines: 800,
-    tokenBudget: 2000,
-    description: 'Testing standards and test-ID conventions',
+    description: 'Prioritized actions + deployment roadmap',
   },
 ];
 
-/** Optional but recommended docs */
+/**
+ * Recommended docs — as needed per session.
+ *
+ * 06-11: Findings  (what was discovered during investigation)
+ * 12-14: Reference (lookups and tools for next agent)
+ */
 export const RECOMMENDED_TEMPLATES: TemplateMetadata[] = [
   {
-    category: 'AR',
-    sequence: 1,
-    slug: 'SYSTEM_ARCHITECTURE',
-    filename: 'AR-01-SYSTEM_ARCHITECTURE',
+    sequence: 6,
+    slug: 'ARCHITECTURE',
+    filename: '06-ARCHITECTURE',
+    category: 'findings',
     required: false,
     maxLines: 1000,
     tokenBudget: 2500,
-    description: 'System architecture and component maps',
+    description: 'System design, data flows, decision records',
   },
   {
-    category: 'AR',
-    sequence: 2,
+    sequence: 7,
     slug: 'COMPONENT_MAP',
-    filename: 'AR-02-COMPONENT_MAP',
+    filename: '07-COMPONENT_MAP',
+    category: 'findings',
     required: false,
     maxLines: 1000,
     tokenBudget: 2500,
     description: 'Component → hook interactions, data flows, blast radius',
   },
   {
-    category: 'OP',
-    sequence: 2,
-    slug: 'SESSION_LOG',
-    filename: 'OP-02-SESSION_LOG',
-    required: false,
-    maxLines: 1200,
-    tokenBudget: 2500,
-    description: 'Completed/skipped/outdated, failed commands, token loss prevention',
-  },
-  {
-    category: 'OP',
-    sequence: 3,
-    slug: 'SCRIPTS_REFERENCE',
-    filename: 'OP-03-SCRIPTS_REFERENCE',
-    required: false,
-    maxLines: 800,
-    tokenBudget: 1500,
-    description: 'All scripts — purpose, usage, status',
-  },
-  {
-    category: 'QA',
-    sequence: 2,
-    slug: 'GAP_ANALYSIS',
-    filename: 'QA-02-GAP_ANALYSIS',
-    required: false,
-    maxLines: 1500,
-    tokenBudget: 3000,
-    description: 'Comprehensive 20x audit — features, DB, tests, performance',
-  },
-  {
-    category: 'RF',
-    sequence: 1,
-    slug: 'REFERENCE_MAP',
-    filename: 'RF-01-REFERENCE_MAP',
-    required: false,
-    maxLines: 800,
-    tokenBudget: 2000,
-    description: 'Quick lookup tables for routes, files, features',
-  },
-  {
-    category: 'RF',
-    sequence: 2,
+    sequence: 8,
     slug: 'ROUTE_AUDIT',
-    filename: 'RF-02-ROUTE_AUDIT',
+    filename: '08-ROUTE_AUDIT',
+    category: 'findings',
     required: false,
     maxLines: 800,
     tokenBudget: 2000,
     description: 'All routes discovered, categorized, revenue-tagged',
   },
   {
-    category: 'RF',
-    sequence: 3,
-    slug: 'AUDIT_PROMPTS',
-    filename: 'RF-03-AUDIT_PROMPTS',
+    sequence: 9,
+    slug: 'GAP_ANALYSIS',
+    filename: '09-GAP_ANALYSIS',
+    category: 'findings',
     required: false,
-    maxLines: 1000,
-    tokenBudget: 2000,
-    description: '20x audit prompts for next agent — copy-paste ready',
+    maxLines: 1500,
+    tokenBudget: 3000,
+    description: 'Comprehensive audit — features, DB, tests, performance',
   },
   {
-    category: 'RF',
-    sequence: 4,
-    slug: 'IMPROVEMENTS',
-    filename: 'RF-04-IMPROVEMENTS',
+    sequence: 10,
+    slug: 'TEST_FRAMEWORK',
+    filename: '10-TEST_FRAMEWORK',
+    category: 'findings',
+    required: false,
+    maxLines: 800,
+    tokenBudget: 2000,
+    description: 'Test-ID conventions, coverage findings, automation',
+  },
+  {
+    sequence: 11,
+    slug: 'SCRIPTS_REFERENCE',
+    filename: '11-SCRIPTS_REFERENCE',
+    category: 'findings',
+    required: false,
+    maxLines: 800,
+    tokenBudget: 1500,
+    description: 'All scripts — purpose, usage, status',
+  },
+  {
+    sequence: 12,
+    slug: 'REFERENCE_MAP',
+    filename: '12-REFERENCE_MAP',
+    category: 'reference',
+    required: false,
+    maxLines: 800,
+    tokenBudget: 2000,
+    description: 'Quick lookup tables for routes, files, features',
+  },
+  {
+    sequence: 13,
+    slug: 'AUDIT_PROMPTS',
+    filename: '13-AUDIT_PROMPTS',
+    category: 'reference',
     required: false,
     maxLines: 1000,
     tokenBudget: 2000,
-    description: 'Instruction files, AGENTS.md, CI/CD, automation improvements',
+    description: 'Pre-built prompts for next agent — copy-paste ready',
+  },
+  {
+    sequence: 14,
+    slug: 'IMPROVEMENTS',
+    filename: '14-IMPROVEMENTS',
+    category: 'reference',
+    required: false,
+    maxLines: 1000,
+    tokenBudget: 2000,
+    description: 'Instruction files, AGENTS.md, CI/CD, automation',
   },
 ];
 
@@ -263,8 +337,8 @@ export type ProjectSize = 'minimal' | 'medium' | 'large';
 
 export const PROJECT_SIZE_THRESHOLDS = {
   minimal: { maxLoc: 5000, requiredDocs: 3, recommendedDocs: 0 },
-  medium: { maxLoc: 20000, requiredDocs: 5, recommendedDocs: 2 },
-  large: { maxLoc: Infinity, requiredDocs: 5, recommendedDocs: 4 },
+  medium: { maxLoc: 20000, requiredDocs: 6, recommendedDocs: 2 },
+  large: { maxLoc: Infinity, requiredDocs: 6, recommendedDocs: 4 },
 } as const;
 
 // ─── Date Utilities ──────────────────────────────────────────────

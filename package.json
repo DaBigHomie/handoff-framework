@@ -1,7 +1,7 @@
 {
     "name": "@dabighomie/handoff-framework",
-    "version": "2.0.0",
-    "description": "Portable handoff documentation framework for agent-to-agent knowledge transfer with FSD naming convention",
+    "version": "3.0.0",
+    "description": "Portable handoff documentation framework for agent-to-agent knowledge transfer with numeric-first naming",
     "type": "module",
     "main": "src/cli.mts",
     "bin": {
@@ -24,7 +24,7 @@
         "documentation",
         "agent",
         "copilot",
-        "fsd",
+        "numeric",
         "framework"
     ],
     "author": "DaBigHomie",

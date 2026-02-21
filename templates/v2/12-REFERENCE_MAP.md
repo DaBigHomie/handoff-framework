@@ -1,7 +1,7 @@
 # Reference Map — {{PROJECT_NAME}}
 
 **Category**: Reference (RF)  
-**Document**: RF-01  
+**Document**: 12  
 **Version**: 2.0.0  
 **Created**: {{DATE}}  
 **Last Updated**: {{DATE}}
@@ -102,9 +102,9 @@ npx tsx e2e/scripts/discover-routes.mts
 
 ## Related Documents
 
-- [CO-00-MASTER_INDEX](./CO-00-MASTER_INDEX_{{DATE}}.md) — Full navigation hub
-- [AR-01-SYSTEM_ARCHITECTURE](./AR-01-SYSTEM_ARCHITECTURE_{{DATE}}.md) — System details
-- [QA-01-TESTID_FRAMEWORK](./QA-01-TESTID_FRAMEWORK_{{DATE}}.md) — Test conventions
+- [00-MASTER_INDEX](./00-MASTER_INDEX_{{DATE}}.md) — Full navigation hub
+- [06-ARCHITECTURE](./06-ARCHITECTURE_{{DATE}}.md) — System details
+- [10-TEST_FRAMEWORK](./10-TEST_FRAMEWORK_{{DATE}}.md) — Test conventions
 
 ---
 

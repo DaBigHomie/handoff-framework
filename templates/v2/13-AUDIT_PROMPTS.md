@@ -26,12 +26,12 @@ Pre-built prompts for the NEXT agent to continue auditing and implementing. Each
 ### Prompt 1: [Title]
 
 ```
-[TODO: Complete prompt with context, task, acceptance criteria]
+<!-- INVESTIGATE: Complete prompt with context, task, acceptance criteria -->
 
 Context:
 - Project: {{PROJECT_NAME}}
-- Read: docs/handoff/CO-00-MASTER_INDEX_{{DATE}}.md
-- Read: docs/handoff/CO-03-TASK_TRACKER_{{DATE}}.md
+- Read: docs/handoff/00-MASTER_INDEX_{{DATE}}.md
+- Read: docs/handoff/03-TASK_TRACKER_{{DATE}}.md
 
 Task:
 - [specific task]
@@ -46,7 +46,7 @@ Acceptance Criteria:
 ### Prompt 2: [Title]
 
 ```
-[TODO]
+<!-- INVESTIGATE -->
 ```
 
 ---
@@ -56,13 +56,13 @@ Acceptance Criteria:
 ### Prompt 3: [Title]
 
 ```
-[TODO]
+<!-- INVESTIGATE -->
 ```
 
 ### Prompt 4: [Title]
 
 ```
-[TODO]
+<!-- INVESTIGATE -->
 ```
 
 ---
@@ -72,7 +72,7 @@ Acceptance Criteria:
 ### Prompt 5: [Title]
 
 ```
-[TODO]
+<!-- INVESTIGATE -->
 ```
 
 ---
@@ -82,7 +82,7 @@ Acceptance Criteria:
 ### Prompt 6: [Title]
 
 ```
-[TODO]
+<!-- INVESTIGATE -->
 ```
 
 ---
@@ -96,7 +96,7 @@ Context:
 - Project: {{PROJECT_NAME}} ({{TECH_STACK}})
 - Read these docs FIRST: [list specific handoff docs]
 - Current state: [brief description]
-- Failed commands to avoid: [list from OP-02-SESSION_LOG]
+- Failed commands to avoid: [list from 04-SESSION_LOG]
 
 Task:
 - [Primary objective]
@@ -113,8 +113,8 @@ Acceptance Criteria:
 - [ ] npx tsc --noEmit — 0 errors
 - [ ] npm run lint — 0 errors
 - [ ] npm run build — success
-- [ ] Update CO-03-TASK_TRACKER with session results
-- [ ] Update OP-02-SESSION_LOG with completed/skipped/failed
+- [ ] Update 03-TASK_TRACKER with session results
+- [ ] Update 04-SESSION_LOG with completed/skipped/failed
 
 Token Budget: ~[estimate] tokens for context loading
 Estimated Time: [hours]

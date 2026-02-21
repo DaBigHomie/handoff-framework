@@ -2,21 +2,21 @@
 /**
  * validate-docs.mts — Validate Handoff Documentation Quality & Structure
  *
- * Checks FSD-named docs for content quality, structure, token budgets,
+ * Checks numeric-named docs for content quality, structure, token budgets,
  * and quality gate integration. Uses documentation-standards 7-point scoring.
  *
- * Usage: npx tsx src/validate-docs.mts <project-name>
- * Example: npx tsx src/validate-docs.mts damieus-com-migration
+ * Usage: npx tsx src/validate-docs.mts <project-name> [--session <slug>]
+ * Example: npx tsx src/validate-docs.mts damieus-com-migration --session 20x-e2e-integration
  */
 
-import { readFile, readdir, stat } from 'fs/promises';
+import { readFile, readdir } from 'fs/promises';
 import { join, basename } from 'path';
 
 import { VERSION } from './version.js';
 import {
-  FSD_FILENAME_REGEX,
-  CANONICAL_DOCS_PATH,
+  NUMERIC_FILENAME_REGEX,
   REQUIRED_TEMPLATES,
+  getCategoryForSequence,
   type ValidationIssue,
   type ValidationResult,
   type Severity,
@@ -28,7 +28,8 @@ import {
   getFrameworkRoot,
   resolveProjectDir,
   getHandoffDocsPath,
-  formatTable,
+  parseSessionArg,
+  findHandoffFolders,
 } from './utils.js';
 
 // ─── Scoring Weights (documentation-standards 7-point system) ────
@@ -140,17 +141,24 @@ async function validateCriticalContext(
 
 // ─── Main Validator ──────────────────────────────────────────────
 
-async function validateProject(projectDir: string, projectName: string): Promise<ValidationResult> {
-  const handoffDir = getHandoffDocsPath(projectDir);
+async function validateProject(
+  projectDir: string,
+  projectName: string,
+  sessionSlug?: string,
+): Promise<ValidationResult> {
+  const handoffDir = getHandoffDocsPath(projectDir, sessionSlug);
   const issues: ValidationIssue[] = [];
+  const folderLabel = sessionSlug
+    ? `docs/handoff-${sessionSlug}/`
+    : 'docs/handoff/';
 
   const addIssue: IssueCollector = (severity, message, file, rule) => {
     issues.push({ severity, message, file, rule });
   };
 
-  // 1. Check docs/handoff/ exists
+  // 1. Check docs/handoff[-slug]/ exists
   if (!(await fileExists(handoffDir))) {
-    addIssue('error', `${CANONICAL_DOCS_PATH}/ directory not found. Run init-project.mts first.`);
+    addIssue('error', `${folderLabel} directory not found. Run init-project.mts first.`);
     return buildResult(issues);
   }
 
@@ -159,33 +167,43 @@ async function validateProject(projectDir: string, projectName: string): Promise
   const mdFiles = allFiles.filter((f) => f.endsWith('.md'));
 
   if (mdFiles.length === 0) {
-    addIssue('error', `No markdown files in ${CANONICAL_DOCS_PATH}/`);
+    addIssue('error', `No markdown files in ${folderLabel}`);
     return buildResult(issues);
   }
 
-  // 3. Check required documents exist (by prefix, not exact name)
+  // 3. Check required documents exist (by filename prefix)
   for (const req of REQUIRED_TEMPLATES) {
     const found = mdFiles.some((f) => f.startsWith(req.filename));
     if (!found) {
-      addIssue('error', `Missing required document: ${req.filename}*.md (${req.description})`, undefined, 'required');
+      addIssue(
+        'error',
+        `Missing required document: ${req.filename}*.md (${req.description})`,
+        undefined,
+        'required',
+      );
     }
   }
 
-  // 4. Validate each file's content based on its category
+  // 4. Validate each file
   for (const file of mdFiles) {
     const filePath = join(handoffDir, file);
 
-    // Validate naming format
-    if (!FSD_FILENAME_REGEX.test(file)) {
-      addIssue('warning', `Non-FSD filename: ${file} — should match pattern {PREFIX}-{SEQ}-{SLUG}_{DATE}.md`, file, 'naming');
+    // Validate naming format — numeric {NN}-{SLUG}_{DATE}.md
+    if (!NUMERIC_FILENAME_REGEX.test(file)) {
+      addIssue(
+        'warning',
+        `Non-standard filename: ${file} — should match {NN}-{SLUG}_{DATE}.md`,
+        file,
+        'naming',
+      );
     }
 
-    // Content validation based on document type
-    if (file.startsWith('CO-00-MASTER_INDEX')) {
+    // Content validation based on sequence number
+    if (file.startsWith('00-MASTER_INDEX')) {
       await validateMasterIndex(filePath, addIssue);
-    } else if (file.startsWith('CO-01-PROJECT_STATE')) {
+    } else if (file.startsWith('01-PROJECT_STATE')) {
       await validateProjectState(filePath, addIssue);
-    } else if (file.startsWith('CO-02-CRITICAL_CONTEXT')) {
+    } else if (file.startsWith('02-CRITICAL_CONTEXT')) {
       await validateCriticalContext(filePath, addIssue);
     }
 
@@ -220,8 +238,8 @@ async function validateProject(projectDir: string, projectName: string): Promise
       if (!config.qualityGates) {
         addIssue('error', 'Missing qualityGates in .handoff.config.json', undefined, 'config');
       }
-      if (config.framework?.namingVersion !== 'v2') {
-        addIssue('warning', 'Config namingVersion not set to "v2"', undefined, 'config');
+      if (config.framework?.namingVersion !== 'v2.1') {
+        addIssue('warning', 'Config namingVersion not set to "v2.1"', undefined, 'config');
       }
     } catch {
       addIssue('error', '.handoff.config.json is invalid JSON', undefined, 'config');
@@ -256,14 +274,14 @@ function buildResult(issues: ValidationIssue[]): ValidationResult {
 
 // ─── CLI Output ──────────────────────────────────────────────────
 
-function printResult(result: ValidationResult, projectName: string): void {
+function printResult(result: ValidationResult, projectName: string, sessionSlug?: string): void {
   log.header('HANDOFF DOCUMENTATION VALIDATION');
   console.log('');
   log.info(`Project: ${projectName}`);
+  if (sessionSlug) log.info(`Session: ${sessionSlug}`);
   log.info(`Framework: v${VERSION}`);
   console.log('');
 
-  // Group issues by severity
   const errors = result.issues.filter((i) => i.severity === 'error');
   const warnings = result.issues.filter((i) => i.severity === 'warning');
   const suggestions = result.issues.filter((i) => i.severity === 'suggestion');
@@ -292,7 +310,6 @@ function printResult(result: ValidationResult, projectName: string): void {
     console.log('');
   }
 
-  // Score
   const scoreLabel =
     result.score >= 80
       ? '⭐⭐⭐ Excellent'
@@ -319,13 +336,21 @@ function printResult(result: ValidationResult, projectName: string): void {
 // ─── Main ────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  const projectName = process.argv[2];
+  const rawArgs = process.argv.slice(2);
+  const { sessionSlug, remainingArgs } = parseSessionArg(rawArgs);
+  const projectName = remainingArgs[0];
 
   if (!projectName) {
     log.error('Project name required');
     console.log('');
-    console.log('Usage: npx tsx src/validate-docs.mts <project-name>');
-    console.log('Example: npx tsx src/validate-docs.mts damieus-com-migration');
+    console.log('Usage: npx tsx src/validate-docs.mts <project-name> [--session <slug>]');
+    console.log('');
+    console.log('Examples:');
+    console.log('  npx tsx src/validate-docs.mts damieus-com-migration --session 20x-e2e-integration');
+    console.log('  npx tsx src/validate-docs.mts damieus-com-migration   # validates docs/handoff/');
+    console.log('');
+    console.log('Without --session, validates docs/handoff/');
+    console.log('With --session <slug>, validates docs/handoff-<slug>/');
     process.exit(1);
   }
 
@@ -337,8 +362,22 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const result = await validateProject(projectDir, projectName);
-  printResult(result, projectName);
+  // If no session specified, show available session folders
+  if (!sessionSlug) {
+    const folders = await findHandoffFolders(projectDir);
+    if (folders.length > 1) {
+      log.info('Multiple handoff sessions found:');
+      for (const f of folders) {
+        console.log(`  - ${f.name}${f.sessionSlug ? ` (--session ${f.sessionSlug})` : ''}`);
+      }
+      console.log('');
+      log.info('Tip: Use --session <slug> to validate a specific session');
+      console.log('');
+    }
+  }
+
+  const result = await validateProject(projectDir, projectName, sessionSlug);
+  printResult(result, projectName, sessionSlug);
 
   process.exit(result.passed ? 0 : 1);
 }

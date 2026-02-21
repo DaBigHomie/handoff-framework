@@ -41,10 +41,10 @@ Single source of truth for ALL task tracking across the project. Consolidates sc
 
 | Phase | Features | Completed | Effort (days) | Status |
 |-------|----------|-----------|---------------|--------|
-| P1 | [TODO] | [TODO] | [TODO] | [TODO] |
-| P2 | [TODO] | [TODO] | [TODO] | [TODO] |
-| P3 | [TODO] | [TODO] | [TODO] | [TODO] |
-| P4 | [TODO] | [TODO] | [TODO] | [TODO] |
+| P1 | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> |
+| P2 | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> |
+| P3 | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> |
+| P4 | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> |
 
 ---
 
@@ -54,7 +54,7 @@ Single source of truth for ALL task tracking across the project. Consolidates sc
 
 | # | Feature | Phase | Effort | Has DB | GitHub Issue | Status |
 |---|---------|-------|--------|--------|-------------|--------|
-| [TODO: Auto-populate from implementation-plan.json] |||||
+| <!-- INVESTIGATE: Auto-populate from implementation-plan.json --> |||||
 
 **How to sync**: Run `npx tsx src/generate-state.mts {{PROJECT_NAME}}` to refresh.
 
@@ -66,9 +66,9 @@ Single source of truth for ALL task tracking across the project. Consolidates sc
 
 | # | Blocker | Impact | Effort | Owner |
 |---|---------|--------|--------|-------|
-| 1 | [TODO] | [TODO] | [TODO] | [TODO] |
-| 2 | [TODO] | [TODO] | [TODO] | [TODO] |
-| 3 | [TODO] | [TODO] | [TODO] | [TODO] |
+| 1 | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> |
+| 2 | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> |
+| 3 | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> |
 
 ---
 
@@ -80,9 +80,9 @@ Single source of truth for ALL task tracking across the project. Consolidates sc
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1 | [TODO] | not-started | |
-| 2 | [TODO] | not-started | |
-| 3 | [TODO] | not-started | |
+| 1 | <!-- INVESTIGATE --> | not-started | |
+| 2 | <!-- INVESTIGATE --> | not-started | |
+| 3 | <!-- INVESTIGATE --> | not-started | |
 
 **Status values**: `not-started` | `in-progress` | `completed` | `blocked` | `skipped`
 
@@ -105,9 +105,9 @@ Single source of truth for ALL task tracking across the project. Consolidates sc
 
 | File | Scope | Active Items | Last Sync |
 |------|-------|-------------|-----------|
-| ACTION_ITEMS.md | Production blockers | [TODO] | {{DATE}} |
-| TODO.md | General dev tasks | [TODO] | {{DATE}} |
-| docs/SCOREBOARD.json | Feature tracker | [TODO] | {{DATE}} |
+| ACTION_ITEMS.md | Production blockers | <!-- INVESTIGATE --> | {{DATE}} |
+| TODO.md | General dev tasks | <!-- INVESTIGATE --> | {{DATE}} |
+| docs/SCOREBOARD.json | Feature tracker | <!-- INVESTIGATE --> | {{DATE}} |
 | [Additional files] | [scope] | [count] | [date] |
 
 **Rule**: The SCOREBOARD.json is canonical. If ACTION_ITEMS.md conflicts with SCOREBOARD.json, SCOREBOARD wins.

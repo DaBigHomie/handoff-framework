@@ -1,27 +1,29 @@
 #!/usr/bin/env node --no-warnings
 /**
- * migrate-existing.mts — Migrate existing project docs to FSD v2 naming
+ * migrate-existing.mts — Migrate existing project docs to numeric v2.1 naming
  *
- * Scans docs/.handoff/ (v1) or docs/handoff/ for non-FSD files,
- * creates backup, renames to FSD convention, generates migration log.
+ * Supports three migration paths:
+ *   v1 (bare names in docs/.handoff/)     to v2.1 numeric (docs/handoff[-slug]/)
+ *   v2 (FSD prefix in docs/handoff/)      to v2.1 numeric (docs/handoff[-slug]/)
+ *   bare (docs/handoff-* unstructured)    to v2.1 numeric (same folder)
  *
- * Usage: npx tsx src/migrate-existing.mts <project-name>
- * Example: npx tsx src/migrate-existing.mts damieus-com-migration
+ * Usage: npx tsx src/migrate-existing.mts [project-name] [--session slug]
+ * Example: npx tsx src/migrate-existing.mts damieus-com-migration --session 20x-e2e
  */
 
 import { copyFile, mkdir, readdir, readFile, rename, writeFile } from 'fs/promises';
-import { join, basename, dirname } from 'path';
+import { join, basename } from 'path';
 
 import { VERSION } from './version.js';
 import {
   FSD_FILENAME_REGEX,
-  FSD_CATEGORIES,
-  FSD_CATEGORY_NAMES,
-  CANONICAL_DOCS_PATH,
+  NUMERIC_FILENAME_REGEX,
+  getCategoryForSequence,
+  DOC_CATEGORY_NAMES,
   REQUIRED_TEMPLATES,
   RECOMMENDED_TEMPLATES,
   todayISO,
-  type FsdCategory,
+  type DocCategory,
 } from './types.js';
 import {
   log,
@@ -30,30 +32,61 @@ import {
   resolveProjectDir,
   getHandoffDocsPath,
   getFrameworkRoot,
+  parseSessionArg,
+  findHandoffFolders,
 } from './utils.js';
 
-// ─── V1 → V2 Name Mapping ───────────────────────────────────────
+// ─── Migration Rules ─────────────────────────────────────────────
 
 interface MigrationRule {
-  v1Pattern: RegExp;
-  v2Category: FsdCategory;
-  v2Sequence: number;
-  v2Slug: string;
+  /** Pattern to match the old filename */
+  pattern: RegExp;
+  /** Target sequence number (00-14) */
+  sequence: number;
+  /** Target slug for renamed file */
+  slug: string;
 }
 
+/**
+ * Rules for converting bare/v1 filenames → v2.1 numeric naming.
+ * Also converts v2 FSD-prefixed files by stripping the prefix.
+ */
 const MIGRATION_RULES: MigrationRule[] = [
-  { v1Pattern: /^00-MASTER[-_]INDEX/i, v2Category: 'CO', v2Sequence: 0, v2Slug: 'MASTER_INDEX' },
-  { v1Pattern: /^01-PROJECT[-_]STATE/i, v2Category: 'CO', v2Sequence: 1, v2Slug: 'PROJECT_STATE' },
-  { v1Pattern: /^02-CRITICAL[-_]CONTEXT/i, v2Category: 'CO', v2Sequence: 2, v2Slug: 'CRITICAL_CONTEXT' },
-  { v1Pattern: /ARCHITECTURE/i, v2Category: 'AR', v2Sequence: 1, v2Slug: 'SYSTEM_ARCHITECTURE' },
-  { v1Pattern: /FEATURE[-_]STATUS/i, v2Category: 'RF', v2Sequence: 2, v2Slug: 'FEATURE_STATUS' },
-  { v1Pattern: /TESTID[-_]FRAMEWORK/i, v2Category: 'QA', v2Sequence: 1, v2Slug: 'TESTID_FRAMEWORK' },
-  { v1Pattern: /GAP[-_]ANALYSIS/i, v2Category: 'QA', v2Sequence: 2, v2Slug: 'GAP_ANALYSIS' },
-  { v1Pattern: /DEPLOYMENT[-_]ROADMAP/i, v2Category: 'OP', v2Sequence: 1, v2Slug: 'DEPLOYMENT_ROADMAP' },
-  { v1Pattern: /ROUTE[-_]AUDIT/i, v2Category: 'RF', v2Sequence: 1, v2Slug: 'ROUTE_AUDIT' },
-  { v1Pattern: /REFERENCE[-_]MAP/i, v2Category: 'RF', v2Sequence: 1, v2Slug: 'REFERENCE_MAP' },
-  { v1Pattern: /QUICK[-_]START/i, v2Category: 'OP', v2Sequence: 4, v2Slug: 'QUICK_START' },
-  { v1Pattern: /INSTRUCTION[-_]FILES/i, v2Category: 'RF', v2Sequence: 7, v2Slug: 'INSTRUCTION_FILES' },
+  // v2 FSD-prefixed patterns (CO-00-MASTER_INDEX → 00-MASTER_INDEX)
+  { pattern: /^CO-00-MASTER[-_]INDEX/i, sequence: 0, slug: 'MASTER_INDEX' },
+  { pattern: /^CO-01-PROJECT[-_]STATE/i, sequence: 1, slug: 'PROJECT_STATE' },
+  { pattern: /^CO-02-CRITICAL[-_]CONTEXT/i, sequence: 2, slug: 'CRITICAL_CONTEXT' },
+  { pattern: /^CO-03-TASK[-_]TRACKER/i, sequence: 3, slug: 'TASK_TRACKER' },
+  { pattern: /^OP-02-SESSION[-_]LOG/i, sequence: 4, slug: 'SESSION_LOG' },
+  { pattern: /^OP-01-DEPLOYMENT[-_]ROADMAP/i, sequence: 5, slug: 'NEXT_STEPS' },
+  { pattern: /^AR-01-SYSTEM[-_]ARCHITECTURE/i, sequence: 6, slug: 'ARCHITECTURE' },
+  { pattern: /^AR-02-COMPONENT[-_]MAP/i, sequence: 7, slug: 'COMPONENT_MAP' },
+  { pattern: /^RF-02-ROUTE[-_]AUDIT/i, sequence: 8, slug: 'ROUTE_AUDIT' },
+  { pattern: /^QA-02-GAP[-_]ANALYSIS/i, sequence: 9, slug: 'GAP_ANALYSIS' },
+  { pattern: /^QA-01-TESTID[-_]FRAMEWORK/i, sequence: 10, slug: 'TEST_FRAMEWORK' },
+  { pattern: /^OP-03-SCRIPTS[-_]REFERENCE/i, sequence: 11, slug: 'SCRIPTS_REFERENCE' },
+  { pattern: /^RF-01-REFERENCE[-_]MAP/i, sequence: 12, slug: 'REFERENCE_MAP' },
+  { pattern: /^RF-03-AUDIT[-_]PROMPTS/i, sequence: 13, slug: 'AUDIT_PROMPTS' },
+  { pattern: /^RF-04-IMPROVEMENTS/i, sequence: 14, slug: 'IMPROVEMENTS' },
+
+  // v1 bare-name patterns (00-MASTER-INDEX → 00-MASTER_INDEX)
+  { pattern: /^00-MASTER[-_](?:HANDOFF[-_])?INDEX/i, sequence: 0, slug: 'MASTER_INDEX' },
+  { pattern: /^01-PROJECT[-_]STATE/i, sequence: 1, slug: 'PROJECT_STATE' },
+  { pattern: /^02-CRITICAL[-_]CONTEXT/i, sequence: 2, slug: 'CRITICAL_CONTEXT' },
+  { pattern: /ARCHITECTURE/i, sequence: 6, slug: 'ARCHITECTURE' },
+  { pattern: /FEATURE[-_]STATUS/i, sequence: 9, slug: 'GAP_ANALYSIS' },
+  { pattern: /TESTID[-_]FRAMEWORK/i, sequence: 10, slug: 'TEST_FRAMEWORK' },
+  { pattern: /GAP[-_]ANALYSIS/i, sequence: 9, slug: 'GAP_ANALYSIS' },
+  { pattern: /DEPLOYMENT[-_]ROADMAP/i, sequence: 5, slug: 'NEXT_STEPS' },
+  { pattern: /ROUTE[-_]AUDIT/i, sequence: 8, slug: 'ROUTE_AUDIT' },
+  { pattern: /REFERENCE[-_]MAP/i, sequence: 12, slug: 'REFERENCE_MAP' },
+  { pattern: /QUICK[-_]START/i, sequence: 5, slug: 'NEXT_STEPS' },
+  { pattern: /INSTRUCTION[-_]FILES/i, sequence: 12, slug: 'REFERENCE_MAP' },
+  { pattern: /COMPONENT[-_]MAP/i, sequence: 7, slug: 'COMPONENT_MAP' },
+  { pattern: /SESSION[-_]LOG/i, sequence: 4, slug: 'SESSION_LOG' },
+  { pattern: /TASK[-_]TRACKER/i, sequence: 3, slug: 'TASK_TRACKER' },
+  { pattern: /NEXT[-_]STEPS/i, sequence: 5, slug: 'NEXT_STEPS' },
+  { pattern: /SCRIPTS[-_]REFERENCE/i, sequence: 11, slug: 'SCRIPTS_REFERENCE' },
 ];
 
 interface MigrationAction {
@@ -65,16 +98,22 @@ interface MigrationAction {
 }
 
 function computeNewName(filename: string, today: string): MigrationAction {
-  // Already FSD-named — skip
-  if (FSD_FILENAME_REGEX.test(filename)) {
-    return { oldName: filename, newName: filename, rule: null, action: 'skip', reason: 'Already FSD-named' };
+  // Already v2.1 numeric-named — skip
+  if (NUMERIC_FILENAME_REGEX.test(filename)) {
+    return {
+      oldName: filename,
+      newName: filename,
+      rule: null,
+      action: 'skip',
+      reason: 'Already numeric-named (v2.1)',
+    };
   }
 
-  // Try migration rules
+  // Try migration rules (in order — v2 FSD patterns checked first)
   for (const rule of MIGRATION_RULES) {
-    if (rule.v1Pattern.test(filename)) {
-      const seq = String(rule.v2Sequence).padStart(2, '0');
-      const newName = `${rule.v2Category}-${seq}-${rule.v2Slug}_${today}.md`;
+    if (rule.pattern.test(filename)) {
+      const seq = String(rule.sequence).padStart(2, '0');
+      const newName = `${seq}-${rule.slug}_${today}.md`;
       return { oldName: filename, newName, rule, action: 'rename' };
     }
   }
@@ -95,7 +134,9 @@ async function createBackup(
   sourceDir: string,
   projectDir: string,
 ): Promise<string> {
-  const timestamp = todayISO().replace(/-/g, '') + '-' +
+  const timestamp =
+    todayISO().replace(/-/g, '') +
+    '-' +
     new Date().toTimeString().split(' ')[0].replace(/:/g, '');
   const backupDir = join(projectDir, 'docs', `.handoff-backup-${timestamp}`);
   await mkdir(backupDir, { recursive: true });
@@ -110,31 +151,33 @@ async function createBackup(
   return backupDir;
 }
 
-// ─── Migration Log Generator ─────────────────────────────────────
+// ─── Migration Log (v2.1) ────────────────────────────────────────
 
 function generateMigrationLog(
   projectName: string,
   actions: MigrationAction[],
   backupDir: string,
   today: string,
+  sessionSlug?: string,
 ): string {
   const renamed = actions.filter((a) => a.action === 'rename');
   const skipped = actions.filter((a) => a.action === 'skip');
   const manual = actions.filter((a) => a.action === 'manual');
+  const folderLabel = sessionSlug ? `docs/handoff-${sessionSlug}` : 'docs/handoff';
 
   return `# Migration Log
 
 **Project**: ${projectName}
-**Migration Date**: ${today}
+**Migration Date**: ${today}${sessionSlug ? `\n**Session**: ${sessionSlug}` : ''}
 **Framework**: @dabighomie/handoff-framework v${VERSION}
-**Naming Version**: v1 → v2 (FSD)
+**Naming**: v2.1 (numeric-first)
 
 ---
 
 ## Summary
 
 - **Renamed**: ${renamed.length} files
-- **Skipped**: ${skipped.length} files (already FSD-named)
+- **Skipped**: ${skipped.length} files (already numeric-named)
 - **Manual**: ${manual.length} files (need manual review)
 - **Backup**: ${backupDir}
 
@@ -142,11 +185,19 @@ function generateMigrationLog(
 
 ## Renamed Files
 
-| Old Name | New Name |
-|----------|----------|
-${renamed.map((a) => `| ${a.oldName} | ${a.newName} |`).join('\n') || '| *None* | |'}
+| Old Name | New Name | Sequence | Category |
+|----------|----------|----------|----------|
+${
+  renamed
+    .map((a) => {
+      const seq = a.rule ? a.rule.sequence : -1;
+      const cat = seq >= 0 ? getCategoryForSequence(seq) : 'unknown';
+      return `| ${a.oldName} | ${a.newName} | ${String(seq).padStart(2, '0')} | ${DOC_CATEGORY_NAMES[cat as DocCategory] || cat} |`;
+    })
+    .join('\n') || '| *None* | | | |'
+}
 
-## Skipped (Already FSD)
+## Skipped (Already Numeric)
 
 ${skipped.map((a) => `- ${a.oldName}`).join('\n') || '*None*'}
 
@@ -156,13 +207,16 @@ ${manual.map((a) => `- **${a.oldName}**: ${a.reason}`).join('\n') || '*None*'}
 
 ---
 
-## FSD Naming Reference
+## Numeric Naming Reference (v2.1)
 
-| Prefix | Category | Description |
-|--------|----------|-------------|
-${FSD_CATEGORIES.map((c) => `| ${c} | ${FSD_CATEGORY_NAMES[c]} | See NAMING_CONVENTION.md |`).join('\n')}
+| Range | Category | Description |
+|-------|----------|-------------|
+| 00-02 | Context  | Project state, critical context, master index |
+| 03-05 | Session  | Tasks, log, next steps |
+| 06-11 | Findings | Architecture, components, routes, gaps, tests |
+| 12-14 | Reference| File maps, prompts, improvements |
 
-**Pattern**: \`{PREFIX}-{SEQ}-{SLUG}_{YYYY-MM-DD}.md\`
+**Pattern**: \`{NN}-{SLUG}_{YYYY-MM-DD}.md\`
 
 ---
 
@@ -171,14 +225,14 @@ ${FSD_CATEGORIES.map((c) => `| ${c} | ${FSD_CATEGORY_NAMES[c]} | See NAMING_CONV
 - [ ] Verify renamed files look correct
 - [ ] Handle "Manual Review" items above
 - [ ] Update any internal cross-references between docs
-- [ ] Run: \`npx tsx src/validate-naming.mts ${projectName}\`
-- [ ] Run: \`npx tsx src/validate-docs.mts ${projectName}\`
+- [ ] Run: \`npx tsx src/validate-naming.mts ${projectName}${sessionSlug ? ` --session ${sessionSlug}` : ''}\`
+- [ ] Run: \`npx tsx src/validate-docs.mts ${projectName}${sessionSlug ? ` --session ${sessionSlug}` : ''}\`
 - [ ] Delete backup after verifying: \`${backupDir}\`
 - [ ] Commit the migration
 
 ---
 
-**Generated by**: migrate-existing.mts
+**Generated by**: migrate-existing.mts v${VERSION}
 **Date**: ${today}
 `;
 }
@@ -186,13 +240,21 @@ ${FSD_CATEGORIES.map((c) => `| ${c} | ${FSD_CATEGORY_NAMES[c]} | See NAMING_CONV
 // ─── Main ────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  const projectName = process.argv[2];
+  const rawArgs = process.argv.slice(2);
+  const { sessionSlug, remainingArgs } = parseSessionArg(rawArgs);
+  const projectName = remainingArgs[0];
 
   if (!projectName) {
     log.error('Project name required');
     console.log('');
-    console.log('Usage: npx tsx src/migrate-existing.mts <project-name>');
-    console.log('Example: npx tsx src/migrate-existing.mts damieus-com-migration');
+    console.log('Usage: npx tsx src/migrate-existing.mts <project-name> [--session <slug>]');
+    console.log('');
+    console.log('Examples:');
+    console.log('  npx tsx src/migrate-existing.mts damieus-com-migration --session 20x-e2e-integration');
+    console.log('  npx tsx src/migrate-existing.mts damieus-com-migration');
+    console.log('');
+    console.log('Migrates FSD-named or bare-named docs to numeric v2.1 naming.');
+    console.log('With --session, output goes to docs/handoff-<slug>/');
     process.exit(1);
   }
 
@@ -200,7 +262,8 @@ async function main(): Promise<void> {
   const projectDir = resolveProjectDir(frameworkDir, projectName);
   const today = todayISO();
 
-  log.header(`Migrating handoff docs to FSD v2 for: ${projectName}`);
+  log.header(`Migrating handoff docs to numeric v2.1 for: ${projectName}`);
+  if (sessionSlug) log.info(`Session: ${sessionSlug}`);
   console.log('');
 
   // Verify project exists
@@ -209,19 +272,35 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Find existing docs — check both v1 (docs/.handoff) and v2 (docs/handoff) locations
+  // Find existing docs — check v1 (docs/.handoff), v2-FSD (docs/handoff), session (docs/handoff-slug)
   const v1Dir = join(projectDir, 'docs', '.handoff');
-  const v2Dir = getHandoffDocsPath(projectDir);
+  const sessionDir = getHandoffDocsPath(projectDir, sessionSlug);
+  const genericDir = getHandoffDocsPath(projectDir); // docs/handoff (no slug)
   let sourceDir: string;
+  let targetDir: string;
 
   if (await fileExists(v1Dir)) {
     sourceDir = v1Dir;
-    log.info(`Found v1 docs at: docs/.handoff/ — will migrate to ${CANONICAL_DOCS_PATH}/`);
-  } else if (await fileExists(v2Dir)) {
-    sourceDir = v2Dir;
-    log.info(`Found docs at: ${CANONICAL_DOCS_PATH}/`);
+    targetDir = sessionDir; // migrate into session folder
+    log.info(`Found v1 docs at: docs/.handoff/ — will migrate to ${sessionSlug ? `docs/handoff-${sessionSlug}/` : 'docs/handoff/'}`);
+  } else if (sessionSlug && (await fileExists(sessionDir))) {
+    sourceDir = sessionDir;
+    targetDir = sessionDir; // rename in place
+    log.info(`Found docs at: docs/handoff-${sessionSlug}/`);
+  } else if (await fileExists(genericDir)) {
+    sourceDir = genericDir;
+    targetDir = sessionSlug ? sessionDir : genericDir;
+    log.info(`Found docs at: docs/handoff/${sessionSlug ? ` — will migrate to docs/handoff-${sessionSlug}/` : ''}`);
   } else {
     log.error('No handoff docs found. Run init-project.mts first.');
+    console.log('');
+    const folders = await findHandoffFolders(projectDir);
+    if (folders.length > 0) {
+      log.info('Available handoff folders:');
+      for (const f of folders) {
+        console.log(`  - ${f.name}${f.sessionSlug ? ` (--session ${f.sessionSlug})` : ''}`);
+      }
+    }
     process.exit(1);
   }
   console.log('');
@@ -239,6 +318,17 @@ async function main(): Promise<void> {
   // Compute migration actions
   const actions: MigrationAction[] = files.map((f) => computeNewName(f, today));
 
+  // Deduplicate — if multiple old files map to the same new name, keep first
+  const seenNames = new Set<string>();
+  for (const action of actions) {
+    if (action.action === 'rename' && seenNames.has(action.newName)) {
+      action.action = 'manual';
+      action.reason = `Duplicate target: ${action.newName} already mapped — review manually`;
+    } else if (action.action === 'rename') {
+      seenNames.add(action.newName);
+    }
+  }
+
   // Show plan
   const renamed = actions.filter((a) => a.action === 'rename');
   const skipped = actions.filter((a) => a.action === 'skip');
@@ -253,7 +343,7 @@ async function main(): Promise<void> {
   }
   if (skipped.length > 0) {
     for (const a of skipped) {
-      log.dim(`  SKIP:   ${a.oldName} (already FSD-named)`);
+      log.dim(`  SKIP:   ${a.oldName} (already numeric-named)`);
     }
   }
   if (manual.length > 0) {
@@ -263,7 +353,7 @@ async function main(): Promise<void> {
   }
 
   if (renamed.length === 0) {
-    log.success('All files already use FSD naming — nothing to migrate!');
+    log.success('All files already use numeric naming — nothing to migrate!');
     process.exit(0);
   }
 
@@ -275,12 +365,10 @@ async function main(): Promise<void> {
   log.success(`Backup: ${backupDir}`);
   console.log('');
 
-  // Create v2 dir if migrating from v1
-  if (sourceDir === v1Dir) {
-    await ensureDir(v2Dir);
+  // Ensure target dir exists
+  if (sourceDir !== targetDir) {
+    await ensureDir(targetDir);
   }
-
-  const targetDir = sourceDir === v1Dir ? v2Dir : sourceDir;
 
   // Execute renames
   log.info('Executing migration...');
@@ -294,17 +382,15 @@ async function main(): Promise<void> {
     }
 
     if (sourceDir === targetDir) {
-      // Same dir — just rename
       await rename(srcPath, destPath);
     } else {
-      // Different dir (v1 → v2) — copy
       await copyFile(srcPath, destPath);
     }
     log.success(`  ✓ ${action.oldName} → ${action.newName}`);
   }
 
-  // Copy non-renamed files to v2 dir if migrating from v1
-  if (sourceDir === v1Dir) {
+  // Copy non-renamed files to target dir if different source
+  if (sourceDir !== targetDir) {
     for (const action of [...skipped, ...manual]) {
       const srcPath = join(sourceDir, action.oldName);
       const destPath = join(targetDir, action.oldName);
@@ -317,13 +403,14 @@ async function main(): Promise<void> {
   console.log('');
 
   // Generate migration log
-  const migrationLog = generateMigrationLog(projectName, actions, backupDir, today);
+  const migrationLog = generateMigrationLog(projectName, actions, backupDir, today, sessionSlug);
   const logPath = join(targetDir, 'MIGRATION_LOG.md');
   await writeFile(logPath, migrationLog, 'utf-8');
   log.success('Generated: MIGRATION_LOG.md');
   console.log('');
 
   // Summary
+  const targetLabel = sessionSlug ? `docs/handoff-${sessionSlug}` : 'docs/handoff';
   log.success('Migration complete!');
   console.log(`
   Renamed: ${renamed.length} files
@@ -334,13 +421,13 @@ async function main(): Promise<void> {
 
   log.info('Next steps:');
   console.log(`
-  1. Review: ls ${projectName}/${CANONICAL_DOCS_PATH}/
+  1. Review: ls ${projectName}/${targetLabel}/
   2. Handle manual items in MIGRATION_LOG.md
-  3. Validate: npx tsx src/validate-naming.mts ${projectName}
+  3. Validate: npx tsx src/validate-naming.mts ${projectName}${sessionSlug ? ` --session ${sessionSlug}` : ''}
   4. Commit:
      cd ${projectName}
-     git add ${CANONICAL_DOCS_PATH}/
-     git commit -m "docs: migrate handoff docs to FSD v2 naming"
+     git add ${targetLabel}/
+     git commit -m "docs: migrate handoff docs to numeric v2.1 naming"
 `);
 }
 

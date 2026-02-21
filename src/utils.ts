@@ -5,10 +5,11 @@
  */
 
 import { access, readFile, readdir, stat, writeFile, mkdir } from 'fs/promises';
-import { join, dirname } from 'path';
+import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { buildDocsPath, CANONICAL_DOCS_PREFIX, CANONICAL_DOCS_BASE } from './types.js';
 
 export const execAsync = promisify(exec);
 
@@ -143,8 +144,49 @@ export function resolveProjectDir(frameworkRoot: string, projectName: string): s
 }
 
 /** Get the canonical handoff docs path for a project */
-export function getHandoffDocsPath(projectDir: string): string {
-  return join(projectDir, 'docs', 'handoff');
+export function getHandoffDocsPath(projectDir: string, sessionSlug?: string): string {
+  return join(projectDir, buildDocsPath(sessionSlug));
+}
+
+/**
+ * Parse --session <slug> from CLI args.
+ * Returns { sessionSlug, remainingArgs }.
+ */
+export function parseSessionArg(args: string[]): { sessionSlug?: string; remainingArgs: string[] } {
+  const idx = args.indexOf('--session');
+  if (idx === -1 || idx + 1 >= args.length) {
+    return { sessionSlug: undefined, remainingArgs: args };
+  }
+  const sessionSlug = args[idx + 1];
+  const remainingArgs = [...args.slice(0, idx), ...args.slice(idx + 2)];
+  return { sessionSlug, remainingArgs };
+}
+
+/**
+ * Find existing handoff folders in a project's docs/ directory.
+ * Returns folder names like ["handoff-20x-e2e-integration", "handoff-checkout-refactor"].
+ */
+export interface HandoffFolder {
+  name: string;
+  sessionSlug: string | null;
+}
+
+export async function findHandoffFolders(projectDir: string): Promise<HandoffFolder[]> {
+  const docsDir = join(projectDir, CANONICAL_DOCS_BASE);
+  try {
+    const entries = await readdir(docsDir, { withFileTypes: true });
+    return entries
+      .filter((e) => e.isDirectory() && e.name.startsWith(CANONICAL_DOCS_PREFIX))
+      .map((e) => {
+        const slug = e.name === CANONICAL_DOCS_PREFIX
+          ? null
+          : e.name.slice(CANONICAL_DOCS_PREFIX.length + 1); // strip "handoff-"
+        return { name: e.name, sessionSlug: slug };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    return [];
+  }
 }
 
 // ─── Template Variable Substitution ──────────────────────────────

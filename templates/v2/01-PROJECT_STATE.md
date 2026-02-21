@@ -1,7 +1,7 @@
 # Project State — {{PROJECT_NAME}}
 
 **Category**: Core (CO)  
-**Document**: CO-01  
+**Document**: 01  
 **Version**: 2.0.0  
 **Created**: {{DATE}}  
 **Last Updated**: {{DATE}}  

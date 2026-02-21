@@ -1,7 +1,7 @@
 # System Architecture — {{PROJECT_NAME}}
 
 **Category**: Architecture (AR)  
-**Document**: AR-01  
+**Document**: 06  
 **Version**: 2.0.0  
 **Created**: {{DATE}}  
 **Last Updated**: {{DATE}}
@@ -35,7 +35,7 @@ npx tsc --noEmit && npm run build
 
 ---
 
-## Directory Structure (FSD)
+## Directory Structure (numeric)
 
 ```
 src/
@@ -153,9 +153,9 @@ npx supabase db diff
 
 ## Related Documents
 
-- [CO-02-CRITICAL_CONTEXT](./CO-02-CRITICAL_CONTEXT_{{DATE}}.md) — Gotchas affecting architecture
-- [QA-01-TESTID_FRAMEWORK](./QA-01-TESTID_FRAMEWORK_{{DATE}}.md) — Testing conventions
-- [OP-01-DEPLOYMENT_ROADMAP](./OP-01-DEPLOYMENT_ROADMAP_{{DATE}}.md) — Deploy pipeline
+- [02-CRITICAL_CONTEXT](./02-CRITICAL_CONTEXT_{{DATE}}.md) — Gotchas affecting architecture
+- [10-TEST_FRAMEWORK](./10-TEST_FRAMEWORK_{{DATE}}.md) — Testing conventions
+- [05-NEXT_STEPS](./05-NEXT_STEPS_{{DATE}}.md) — Deploy pipeline
 
 ---
 

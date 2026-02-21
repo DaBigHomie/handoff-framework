@@ -1,94 +1,137 @@
-# Generate 20x Handoff Docs
+```prompt
+# Generate Handoff Docs
 
-> Single-prompt shortcut for generating all handoff documentation for a project.
+> Single-prompt agent shortcut — generates all handoff documentation for a project session.
 
 ## Context
 
-You are using the `@dabighomie/handoff-framework` v2.0.0 — a portable FSD-based handoff documentation system with 15 categorized templates.
+You are using `@dabighomie/handoff-framework` v3.0.0 — a portable, session-aware handoff documentation system with 15 templates ordered by numeric sequence.
 
 **Framework location**: `.handoff-framework/` (relative to workspace root)
 **Template location**: `.handoff-framework/templates/v2/`
-**Output location**: `docs/handoff/` (in the target project)
+**Output location**: `docs/handoff-{session-slug}/` (in the target project)
 
-## Instructions
+## Your Mission
 
-1. **Identify the target project** (ask user if unclear)
-2. **Run the init script** to scaffold all template files:
-   ```bash
-   cd .handoff-framework && npx tsx src/init-project.mts <PROJECT_NAME>
-   ```
-3. **Run the state generator** to auto-populate CO-01:
-   ```bash
-   npx tsx src/generate-state.mts <PROJECT_NAME>
-   ```
-4. **Fill in templates** by auditing the project:
-   - CO-00: Update document status table
-   - CO-02: Discover gotchas, failed commands, issues
-   - CO-03: Locate & consolidate all todo/scoreboard/status files
-   - AR-01: Map system architecture
-   - AR-02: Map component → hook interactions
-   - OP-01: Document deployment steps
-   - OP-02: Log session work (completed/skipped/outdated)
-   - OP-03: Catalog all scripts
-   - QA-01: Audit test-ids and testing conventions
-   - QA-02: Run comprehensive gap analysis
-   - RF-01: Build file/feature reference map
-   - RF-02: Discover and categorize all routes
-   - RF-03: Write audit prompts for next agent
-   - RF-04: Document improvement suggestions
-5. **Validate** all docs pass naming conventions:
-   ```bash
-   npx tsx src/validate-naming.mts <PROJECT_NAME>
-   ```
-6. **Validate** docs quality:
-   ```bash
-   npx tsx src/validate-docs.mts <PROJECT_NAME>
-   ```
+Create handoff docs for the **current chat session** — what you know, what happened, what's next. These docs are NOT generic project wikis. They capture the conversation's work for the next agent.
 
-## FSD Naming Convention
+## Step 1: Investigate the Project
 
-All files follow: `{PREFIX}-{SEQ}-{SLUG}_{YYYY-MM-DD}.md`
+**Read the codebase first.** Do NOT fill in templates mechanically.
 
-| Prefix | Category | Required | Templates |
-|--------|----------|----------|-----------|
-| CO | Core | CO-00, CO-01, CO-02, CO-03 | 4 required |
-| AR | Architecture | — | AR-01, AR-02 |
-| OP | Operations | OP-01 | OP-01 required, OP-02, OP-03 |
-| QA | Quality | QA-01 | QA-01 required, QA-02 |
-| RF | Reference | — | RF-01, RF-02, RF-03, RF-04 |
+- Read `AGENTS.md`, `package.json`, `tsconfig.json` to understand the project
+- Read `src/` structure to understand architecture
+- Check git log for recent changes
+- Look for existing docs, scripts, test files
+- Identify blockers, gotchas, and failed experiments
 
-## Required Templates (6) — Every Project
+## Step 2: Scaffold
 
-1. **CO-00-MASTER_INDEX** — Navigation hub (read first)
-2. **CO-01-PROJECT_STATE** — Auto-generated metrics snapshot
-3. **CO-02-CRITICAL_CONTEXT** — Gotchas, failed commands, issues
-4. **CO-03-TASK_TRACKER** — Unified todo/scoreboard integration
-5. **OP-01-DEPLOYMENT_ROADMAP** — Deployment steps & checklist
-6. **QA-01-TESTID_FRAMEWORK** — Test-id conventions & coverage
+```bash
+cd .handoff-framework
+npx tsx src/init-project.mts <PROJECT_PATH> --session <slug>
+```
 
-## Recommended Templates (9) — As Needed
+Generates a `docs/handoff-{slug}/` folder with template stubs.
+The `--session` slug should describe the work (e.g., `checkout-refactor`, `20x-e2e-integration`).
 
-7. **AR-01-SYSTEM_ARCHITECTURE** — System design & data flows
-8. **AR-02-COMPONENT_MAP** — Component → hook interaction map
-9. **OP-02-SESSION_LOG** — Completed/skipped/outdated/failed
-10. **OP-03-SCRIPTS_REFERENCE** — Scripts catalog
-11. **QA-02-GAP_ANALYSIS** — Comprehensive 20x audit
-12. **RF-01-REFERENCE_MAP** — Quick file/feature lookup
-13. **RF-02-ROUTE_AUDIT** — Routes discovered & categorized
-14. **RF-03-AUDIT_PROMPTS** — Pre-built prompts for next agent
-15. **RF-04-IMPROVEMENTS** — Instruction files, AGENTS.md, CI/CD
+## Step 3: Auto-Generate Project State
+
+```bash
+npx tsx src/generate-state.mts <PROJECT_PATH> --session <slug>
+```
+
+Populates `01-PROJECT_STATE` with file counts, dependency list, TypeScript status, etc.
+
+## Step 4: Fill Docs by Investigating (NOT Copying Templates)
+
+Work through docs in reading order. For each, **investigate the codebase** and write what you found.
+
+### Context (00-02) — What does the next agent need to know?
+
+| Seq | Doc | How to Fill |
+|-----|-----|-------------|
+| 00 | MASTER_INDEX | Update status table as you complete each doc |
+| 01 | PROJECT_STATE | Already auto-generated. Review and correct. |
+| 02 | CRITICAL_CONTEXT | <!-- INVESTIGATE: Run `git log --oneline -20`, check for .env issues, find TODOs, look for commented-out code, identify any blockers --> |
+
+### Session (03-05) — What happened? What's next?
+
+| Seq | Doc | How to Fill |
+|-----|-----|-------------|
+| 03 | TASK_TRACKER | <!-- INVESTIGATE: Search for TODO/FIXME/HACK in codebase, check GitHub issues, consolidate all action items --> |
+| 04 | SESSION_LOG | Document what this session accomplished, skipped, or failed |
+| 05 | NEXT_STEPS | Prioritized P0/P1/P2 tasks for the next session |
+
+### Findings (06-11) — What was discovered?
+
+| Seq | Doc | How to Fill |
+|-----|-----|-------------|
+| 06 | ARCHITECTURE | <!-- INVESTIGATE: Read entry points, trace data flow, check for design patterns --> |
+| 07 | COMPONENT_MAP | <!-- INVESTIGATE: Map component imports, find shared state, identify blast radius --> |
+| 08 | ROUTE_AUDIT | <!-- INVESTIGATE: Parse router config, find all page files, check for dead routes --> |
+| 09 | GAP_ANALYSIS | <!-- INVESTIGATE: Compare stated features vs actual implementation, check test coverage --> |
+| 10 | TEST_FRAMEWORK | <!-- INVESTIGATE: Find test files, check test-id patterns, calculate coverage --> |
+| 11 | SCRIPTS_REFERENCE | <!-- INVESTIGATE: Read package.json scripts, find shell scripts, check for automation --> |
+
+### Reference (12-14) — Quick lookups for next agent
+
+| Seq | Doc | How to Fill |
+|-----|-----|-------------|
+| 12 | REFERENCE_MAP | Build quick-lookup tables: routes → files, features → components |
+| 13 | AUDIT_PROMPTS | Write copy-paste prompts the next agent can use |
+| 14 | IMPROVEMENTS | Suggest improvements to AGENTS.md, instruction files, CI/CD |
+
+**Not all docs are needed.** Skip findings/reference docs that don't apply to the session's scope. Required: 00-05. Optional: 06-14.
+
+## Step 5: Validate
+
+```bash
+npx tsx src/validate-naming.mts <PROJECT_PATH> --session <slug>
+npx tsx src/validate-docs.mts <PROJECT_PATH> --session <slug>
+node scripts/validate-quality.js <PROJECT_PATH>/docs/handoff-<slug>/  # Handoff quality: target 75%+
+```
+
+## Naming Convention
+
+All files follow: `{NN}-{SLUG}_{YYYY-MM-DD}.md`
+
+| Seq | Slug | Category | Required |
+|-----|------|----------|----------|
+| 00 | MASTER_INDEX | context | Yes |
+| 01 | PROJECT_STATE | context | Yes |
+| 02 | CRITICAL_CONTEXT | context | Yes |
+| 03 | TASK_TRACKER | session | Yes |
+| 04 | SESSION_LOG | session | Yes |
+| 05 | NEXT_STEPS | session | Yes |
+| 06 | ARCHITECTURE | findings | No |
+| 07 | COMPONENT_MAP | findings | No |
+| 08 | ROUTE_AUDIT | findings | No |
+| 09 | GAP_ANALYSIS | findings | No |
+| 10 | TEST_FRAMEWORK | findings | No |
+| 11 | SCRIPTS_REFERENCE | findings | No |
+| 12 | REFERENCE_MAP | reference | No |
+| 13 | AUDIT_PROMPTS | reference | No |
+| 14 | IMPROVEMENTS | reference | No |
 
 ## Token Budget
 
-Target: ~30,000 tokens total across all docs.
-Each template has a suggested token budget in the framework's `types.ts`.
+Target: ~30,000 tokens total. Each template has a suggested budget in `.handoff-framework/src/types.ts`.
 
 ## Quality Gates
 
-After generating all docs:
+After generating docs:
 ```bash
-npx tsc --noEmit          # TypeScript: 0 errors (framework)
-node --import tsx --test tests/*.spec.ts  # Tests: all pass
-npx tsx src/validate-naming.mts <PROJECT_NAME>  # Naming: valid
-npx tsx src/validate-docs.mts <PROJECT_NAME>    # Quality: ≥80%
+npx tsc --noEmit                                        # TypeScript: 0 errors
+node --import tsx --test tests/*.spec.ts                # Tests: all pass
+npx tsx src/validate-naming.mts <PROJECT_PATH> --session <slug>   # Naming: valid
+npx tsx src/validate-docs.mts <PROJECT_PATH> --session <slug>     # Quality: ≥80%
+node scripts/validate-quality.js <PROJECT_PATH>/docs/handoff-<slug>/  # Handoff quality: ≥75%
+```
+
+## Commit Rules
+
+- **Only commit files you created, edited, or updated** — never stage unrelated files
+- Run `git diff --cached --name-only` to verify before committing
+- Use `git add <specific-files>` instead of `git add -A` when working in a shared repo
 ```

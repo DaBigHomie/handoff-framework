@@ -1,18 +1,18 @@
 #!/usr/bin/env node --no-warnings
 /**
- * generate-state.mts — Auto-generate CO-01-PROJECT_STATE document
+ * generate-state.mts — Auto-generate 01-PROJECT_STATE document
  *
- * Scans project metrics, runs quality gates, outputs FSD-named doc.
+ * Scans project metrics, runs quality gates, outputs numbered doc.
  *
- * Usage: npx tsx src/generate-state.mts <project-name>
- * Example: npx tsx src/generate-state.mts damieus-com-migration
+ * Usage: npx tsx src/generate-state.mts <project-name> [--session <slug>]
+ * Example: npx tsx src/generate-state.mts damieus-com-migration --session 20x-e2e-integration
  */
 
 import { readdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { VERSION } from './version.js';
-import { CANONICAL_DOCS_PATH, todayISO } from './types.js';
+import { buildDocsPath, todayISO } from './types.js';
 import {
   log,
   fileExists,
@@ -22,6 +22,7 @@ import {
   getFrameworkRoot,
   resolveProjectDir,
   getHandoffDocsPath,
+  parseSessionArg,
   execAsync,
 } from './utils.js';
 
@@ -206,19 +207,22 @@ ${
 // ─── Main ────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  const projectName = process.argv[2];
+  const rawArgs = process.argv.slice(2);
+  const { sessionSlug, remainingArgs } = parseSessionArg(rawArgs);
+  const projectName = remainingArgs[0];
 
   if (!projectName) {
     log.error('Project name required');
     console.log('');
-    console.log('Usage: npx tsx src/generate-state.mts <project-name>');
-    console.log('Example: npx tsx src/generate-state.mts damieus-com-migration');
+    console.log('Usage: npx tsx src/generate-state.mts <project-name> [--session <slug>]');
+    console.log('Example: npx tsx src/generate-state.mts damieus-com-migration --session 20x-e2e-integration');
     process.exit(1);
   }
 
   const frameworkDir = getFrameworkRoot(import.meta.url);
   const projectDir = resolveProjectDir(frameworkDir, projectName);
-  const handoffDir = getHandoffDocsPath(projectDir);
+  const handoffDir = getHandoffDocsPath(projectDir, sessionSlug);
+  const docsPath = buildDocsPath(sessionSlug);
   const today = todayISO();
 
   log.header(`Generating project state for: ${projectName}`);
@@ -230,9 +234,9 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Verify docs/handoff/ exists
+  // Verify handoff folder exists
   if (!(await fileExists(handoffDir))) {
-    log.error(`${CANONICAL_DOCS_PATH}/ not initialized. Run init-project.mts first.`);
+    log.error(`${docsPath}/ not initialized. Run init-project.mts first.`);
     process.exit(1);
   }
 
@@ -271,15 +275,15 @@ async function main(): Promise<void> {
   const techStack = await detectTechStack(projectDir);
 
   // Generate document
-  log.info('Generating CO-01-PROJECT_STATE...');
+  log.info('Generating 01-PROJECT_STATE...');
   const content = generateDocument(projectName, metrics, gates, commits, techStack);
 
-  const outputFilename = `CO-01-PROJECT_STATE_${today}.md`;
+  const outputFilename = `01-PROJECT_STATE_${today}.md`;
   const outputPath = join(handoffDir, outputFilename);
   await writeFile(outputPath, content, 'utf-8');
 
   console.log('');
-  log.success(`Generated: ${CANONICAL_DOCS_PATH}/${outputFilename}`);
+  log.success(`Generated: ${docsPath}/${outputFilename}`);
   console.log('');
 
   const allPassing = Object.values(gates).every((g) => g.passed);
@@ -289,14 +293,15 @@ async function main(): Promise<void> {
     log.warning('Some quality gates failed — see document for details');
   }
 
+  const sessionFlag = sessionSlug ? ` --session ${sessionSlug}` : '';
   console.log('');
   log.info('Next steps:');
   console.log(`
-  1. Review: cat ${projectName}/${CANONICAL_DOCS_PATH}/${outputFilename}
-  2. Validate: npx tsx src/validate-naming.mts ${projectName}
+  1. Review: cat ${projectName}/${docsPath}/${outputFilename}
+  2. Validate: npx tsx src/validate-naming.mts ${projectName}${sessionFlag}
   3. Commit:
      cd ${projectName}
-     git add ${CANONICAL_DOCS_PATH}/${outputFilename}
+     git add ${docsPath}/${outputFilename}
      git commit -m "docs: update project state (${today})"
 `);
 }

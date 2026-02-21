@@ -22,20 +22,20 @@ Track what was completed, skipped, and what information is outdated. Document fa
 
 | # | Work Item | Files Changed | Evidence |
 |---|-----------|---------------|----------|
-| 1 | [TODO] | [TODO] | TypeScript: 0 errors |
-| 2 | [TODO] | [TODO] | Build: Success |
+| 1 | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | TypeScript: 0 errors |
+| 2 | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | Build: Success |
 
 ### Skipped (Intentionally)
 
 | # | Work Item | Reason | Revisit? |
 |---|-----------|--------|----------|
-| 1 | [TODO] | [reason skipped] | Yes/No |
+| 1 | <!-- INVESTIGATE --> | [reason skipped] | Yes/No |
 
 ### Outdated Information Discovered
 
 | # | Document/Section | What's Wrong | Corrected In |
 |---|-----------------|-------------|-------------|
-| 1 | [TODO] | [what's outdated] | [new doc or section] |
+| 1 | <!-- INVESTIGATE --> | [what's outdated] | [new doc or section] |
 
 ---
 
@@ -77,13 +77,13 @@ Track what was completed, skipped, and what information is outdated. Document fa
 
 | Feature | Type | Status | Files | Impact |
 |---------|------|--------|-------|--------|
-| [TODO] | New / Improved / Fixed | Complete | [file list] | [description] |
+| <!-- INVESTIGATE --> | New / Improved / Fixed | Complete | [file list] | [description] |
 
 ### Running Changelog
 
 | Date | Feature | Type | Commit |
 |------|---------|------|--------|
-| {{DATE}} | [TODO] | feat/fix/docs | [hash] |
+| {{DATE}} | <!-- INVESTIGATE --> | feat/fix/docs | [hash] |
 
 ---
 
@@ -91,7 +91,7 @@ Track what was completed, skipped, and what information is outdated. Document fa
 
 | # | Opportunity | Category | Effort | Impact | Status |
 |---|------------|----------|--------|--------|--------|
-| 1 | [TODO] | CI/CD / DX / Performance | [hours] | High/Med/Low | Not started |
+| 1 | <!-- INVESTIGATE --> | CI/CD / DX / Performance | [hours] | High/Med/Low | Not started |
 
 ---
 
@@ -115,7 +115,7 @@ Track what was completed, skipped, and what information is outdated. Document fa
 
 | # | Task Done Manually | Could Automate With | Effort to Automate | Priority |
 |---|-------------------|--------------------|--------------------|----------|
-| 1 | [TODO] | [script/tool] | [hours] | P0-P3 |
+| 1 | <!-- INVESTIGATE --> | [script/tool] | [hours] | P0-P3 |
 
 ---
 

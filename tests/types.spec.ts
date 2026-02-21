@@ -1,5 +1,5 @@
 /**
- * types.spec.ts — Tests for shared types and constants
+ * types.spec.ts — Tests for shared types, constants, and template metadata
  *
  * Run: node --import tsx --test tests/types.spec.ts
  */
@@ -7,77 +7,188 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  FSD_CATEGORIES,
-  FSD_CATEGORY_NAMES,
-  FSD_CATEGORY_DESCRIPTIONS,
+  DOC_CATEGORIES,
+  DOC_CATEGORY_NAMES,
+  DOC_CATEGORY_DESCRIPTIONS,
+  DOC_CATEGORY_RANGES,
+  getCategoryForSequence,
+  CANONICAL_DOCS_BASE,
+  CANONICAL_DOCS_PREFIX,
   CANONICAL_DOCS_PATH,
+  buildDocsPath,
   REQUIRED_TEMPLATES,
   RECOMMENDED_TEMPLATES,
   PROJECT_SIZE_THRESHOLDS,
 } from '../src/types.js';
 
-describe('FSD_CATEGORY_NAMES', () => {
+// ─── DOC_CATEGORY_NAMES ─────────────────────────────────────────
+
+describe('DOC_CATEGORY_NAMES', () => {
   it('has a name for every category', () => {
-    for (const cat of FSD_CATEGORIES) {
-      assert.ok(FSD_CATEGORY_NAMES[cat], `Missing name for ${cat}`);
+    for (const cat of DOC_CATEGORIES) {
+      assert.ok(DOC_CATEGORY_NAMES[cat], `Missing name for ${cat}`);
     }
   });
 });
 
-describe('FSD_CATEGORY_DESCRIPTIONS', () => {
+describe('DOC_CATEGORY_DESCRIPTIONS', () => {
   it('has a description for every category', () => {
-    for (const cat of FSD_CATEGORIES) {
-      assert.ok(FSD_CATEGORY_DESCRIPTIONS[cat], `Missing description for ${cat}`);
+    for (const cat of DOC_CATEGORIES) {
+      assert.ok(DOC_CATEGORY_DESCRIPTIONS[cat], `Missing description for ${cat}`);
     }
   });
 });
 
-describe('CANONICAL_DOCS_PATH', () => {
-  it('is docs/handoff', () => {
+// ─── DOC_CATEGORY_RANGES ────────────────────────────────────────
+
+describe('DOC_CATEGORY_RANGES', () => {
+  it('has a range for every category', () => {
+    for (const cat of DOC_CATEGORIES) {
+      const range = DOC_CATEGORY_RANGES[cat];
+      assert.ok(range, `Missing range for ${cat}`);
+      assert.ok(typeof range.min === 'number');
+      assert.ok(typeof range.max === 'number');
+      assert.ok(range.min <= range.max, `${cat} min > max`);
+    }
+  });
+
+  it('context covers 0-2', () => {
+    assert.equal(DOC_CATEGORY_RANGES.context.min, 0);
+    assert.equal(DOC_CATEGORY_RANGES.context.max, 2);
+  });
+
+  it('session covers 3-5', () => {
+    assert.equal(DOC_CATEGORY_RANGES.session.min, 3);
+    assert.equal(DOC_CATEGORY_RANGES.session.max, 5);
+  });
+
+  it('findings covers 6-11', () => {
+    assert.equal(DOC_CATEGORY_RANGES.findings.min, 6);
+    assert.equal(DOC_CATEGORY_RANGES.findings.max, 11);
+  });
+
+  it('reference covers 12-14', () => {
+    assert.equal(DOC_CATEGORY_RANGES.reference.min, 12);
+    assert.equal(DOC_CATEGORY_RANGES.reference.max, 14);
+  });
+
+  it('ranges are contiguous (no gaps)', () => {
+    const ordered = [...DOC_CATEGORIES];
+    for (let i = 1; i < ordered.length; i++) {
+      const prevMax = DOC_CATEGORY_RANGES[ordered[i - 1]].max;
+      const currMin = DOC_CATEGORY_RANGES[ordered[i]].min;
+      assert.equal(currMin, prevMax + 1, `Gap between ${ordered[i - 1]} and ${ordered[i]}`);
+    }
+  });
+});
+
+// ─── buildDocsPath ──────────────────────────────────────────────
+
+describe('buildDocsPath', () => {
+  it('returns docs/handoff when no slug', () => {
+    assert.equal(buildDocsPath(), 'docs/handoff');
+    assert.equal(buildDocsPath(undefined), 'docs/handoff');
+  });
+
+  it('returns docs/handoff-{slug} with slug', () => {
+    assert.equal(buildDocsPath('20x-e2e-integration'), 'docs/handoff-20x-e2e-integration');
+  });
+
+  it('normalizes uppercase to lowercase', () => {
+    assert.equal(buildDocsPath('My-Session'), 'docs/handoff-my-session');
+  });
+
+  it('replaces spaces and special chars with hyphens', () => {
+    assert.equal(buildDocsPath('checkout refactor'), 'docs/handoff-checkout-refactor');
+    assert.equal(buildDocsPath('db_migration!'), 'docs/handoff-db-migration');
+  });
+
+  it('collapses multiple hyphens', () => {
+    assert.equal(buildDocsPath('a--b---c'), 'docs/handoff-a-b-c');
+  });
+
+  it('strips leading/trailing hyphens', () => {
+    assert.equal(buildDocsPath('-test-'), 'docs/handoff-test');
+  });
+});
+
+describe('CANONICAL_DOCS constants', () => {
+  it('CANONICAL_DOCS_BASE is docs', () => {
+    assert.equal(CANONICAL_DOCS_BASE, 'docs');
+  });
+
+  it('CANONICAL_DOCS_PREFIX is handoff', () => {
+    assert.equal(CANONICAL_DOCS_PREFIX, 'handoff');
+  });
+
+  it('CANONICAL_DOCS_PATH is docs/handoff (deprecated)', () => {
     assert.equal(CANONICAL_DOCS_PATH, 'docs/handoff');
   });
 });
 
+// ─── REQUIRED_TEMPLATES ─────────────────────────────────────────
+
 describe('REQUIRED_TEMPLATES', () => {
-  it('includes CO-00 (master index)', () => {
-    const co00 = REQUIRED_TEMPLATES.find((t) => t.category === 'CO' && t.sequence === 0);
-    assert.ok(co00, 'Missing CO-00');
-    assert.equal(co00.slug, 'MASTER_INDEX');
-    assert.equal(co00.required, true);
-  });
-
-  it('includes CO-01 (project state)', () => {
-    const co01 = REQUIRED_TEMPLATES.find((t) => t.category === 'CO' && t.sequence === 1);
-    assert.ok(co01, 'Missing CO-01');
-  });
-
-  it('includes CO-02 (critical context)', () => {
-    const co02 = REQUIRED_TEMPLATES.find((t) => t.category === 'CO' && t.sequence === 2);
-    assert.ok(co02, 'Missing CO-02');
-  });
-
-  it('includes CO-03 (task tracker)', () => {
-    const co03 = REQUIRED_TEMPLATES.find((t) => t.category === 'CO' && t.sequence === 3);
-    assert.ok(co03, 'Missing CO-03');
-    assert.equal(co03.slug, 'TASK_TRACKER');
-    assert.equal(co03.required, true);
-  });
-
-  it('includes OP-01 (deployment)', () => {
-    const op01 = REQUIRED_TEMPLATES.find((t) => t.category === 'OP' && t.sequence === 1);
-    assert.ok(op01, 'Missing OP-01');
-  });
-
-  it('includes QA-01 (testid framework)', () => {
-    const qa01 = REQUIRED_TEMPLATES.find((t) => t.category === 'QA' && t.sequence === 1);
-    assert.ok(qa01, 'Missing QA-01');
-  });
-
   it('has 6 required templates total', () => {
     assert.equal(REQUIRED_TEMPLATES.length, 6);
   });
 
-  it('all required templates have token budgets', () => {
+  it('sequences 0-5 (context + session)', () => {
+    const seqs = REQUIRED_TEMPLATES.map(t => t.sequence);
+    assert.deepEqual(seqs, [0, 1, 2, 3, 4, 5]);
+  });
+
+  it('includes 00-MASTER_INDEX', () => {
+    const t = REQUIRED_TEMPLATES.find(t => t.sequence === 0);
+    assert.ok(t, 'Missing seq 0');
+    assert.equal(t.slug, 'MASTER_INDEX');
+    assert.equal(t.filename, '00-MASTER_INDEX');
+    assert.equal(t.category, 'context');
+    assert.equal(t.required, true);
+  });
+
+  it('includes 01-PROJECT_STATE', () => {
+    const t = REQUIRED_TEMPLATES.find(t => t.sequence === 1);
+    assert.ok(t, 'Missing seq 1');
+    assert.equal(t.slug, 'PROJECT_STATE');
+    assert.equal(t.category, 'context');
+  });
+
+  it('includes 02-CRITICAL_CONTEXT', () => {
+    const t = REQUIRED_TEMPLATES.find(t => t.sequence === 2);
+    assert.ok(t, 'Missing seq 2');
+    assert.equal(t.slug, 'CRITICAL_CONTEXT');
+    assert.equal(t.category, 'context');
+  });
+
+  it('includes 03-TASK_TRACKER', () => {
+    const t = REQUIRED_TEMPLATES.find(t => t.sequence === 3);
+    assert.ok(t, 'Missing seq 3');
+    assert.equal(t.slug, 'TASK_TRACKER');
+    assert.equal(t.category, 'session');
+  });
+
+  it('includes 04-SESSION_LOG', () => {
+    const t = REQUIRED_TEMPLATES.find(t => t.sequence === 4);
+    assert.ok(t, 'Missing seq 4');
+    assert.equal(t.slug, 'SESSION_LOG');
+    assert.equal(t.category, 'session');
+  });
+
+  it('includes 05-NEXT_STEPS', () => {
+    const t = REQUIRED_TEMPLATES.find(t => t.sequence === 5);
+    assert.ok(t, 'Missing seq 5');
+    assert.equal(t.slug, 'NEXT_STEPS');
+    assert.equal(t.category, 'session');
+  });
+
+  it('all are marked required', () => {
+    for (const t of REQUIRED_TEMPLATES) {
+      assert.equal(t.required, true, `${t.filename} should be required`);
+    }
+  });
+
+  it('all have token budgets', () => {
     for (const t of REQUIRED_TEMPLATES) {
       assert.ok(t.tokenBudget > 0, `${t.filename} has no token budget`);
       assert.ok(t.maxLines > 0, `${t.filename} has no maxLines`);
@@ -85,63 +196,66 @@ describe('REQUIRED_TEMPLATES', () => {
   });
 });
 
-describe('RECOMMENDED_TEMPLATES', () => {
-  it('are all marked as not required', () => {
-    for (const t of RECOMMENDED_TEMPLATES) {
-      assert.equal(t.required, false);
-    }
-  });
+// ─── RECOMMENDED_TEMPLATES ──────────────────────────────────────
 
+describe('RECOMMENDED_TEMPLATES', () => {
   it('has 9 recommended templates total', () => {
     assert.equal(RECOMMENDED_TEMPLATES.length, 9);
   });
 
-  it('includes AR-02 (component map)', () => {
-    const ar02 = RECOMMENDED_TEMPLATES.find((t) => t.category === 'AR' && t.sequence === 2);
-    assert.ok(ar02, 'Missing AR-02');
-    assert.equal(ar02.slug, 'COMPONENT_MAP');
+  it('sequences 6-14 (findings + reference)', () => {
+    const seqs = RECOMMENDED_TEMPLATES.map(t => t.sequence);
+    assert.deepEqual(seqs, [6, 7, 8, 9, 10, 11, 12, 13, 14]);
   });
 
-  it('includes OP-02 (session log)', () => {
-    const op02 = RECOMMENDED_TEMPLATES.find((t) => t.category === 'OP' && t.sequence === 2);
-    assert.ok(op02, 'Missing OP-02');
-    assert.equal(op02.slug, 'SESSION_LOG');
+  it('all are marked not required', () => {
+    for (const t of RECOMMENDED_TEMPLATES) {
+      assert.equal(t.required, false, `${t.filename} should be optional`);
+    }
   });
 
-  it('includes OP-03 (scripts reference)', () => {
-    const op03 = RECOMMENDED_TEMPLATES.find((t) => t.category === 'OP' && t.sequence === 3);
-    assert.ok(op03, 'Missing OP-03');
-    assert.equal(op03.slug, 'SCRIPTS_REFERENCE');
+  it('includes 07-COMPONENT_MAP', () => {
+    const t = RECOMMENDED_TEMPLATES.find(t => t.sequence === 7);
+    assert.ok(t, 'Missing seq 7');
+    assert.equal(t.slug, 'COMPONENT_MAP');
+    assert.equal(t.category, 'findings');
   });
 
-  it('includes QA-02 (gap analysis)', () => {
-    const qa02 = RECOMMENDED_TEMPLATES.find((t) => t.category === 'QA' && t.sequence === 2);
-    assert.ok(qa02, 'Missing QA-02');
-    assert.equal(qa02.slug, 'GAP_ANALYSIS');
+  it('includes 09-GAP_ANALYSIS', () => {
+    const t = RECOMMENDED_TEMPLATES.find(t => t.sequence === 9);
+    assert.ok(t, 'Missing seq 9');
+    assert.equal(t.slug, 'GAP_ANALYSIS');
+    assert.equal(t.category, 'findings');
   });
 
-  it('includes RF-02 (route audit)', () => {
-    const rf02 = RECOMMENDED_TEMPLATES.find((t) => t.category === 'RF' && t.sequence === 2);
-    assert.ok(rf02, 'Missing RF-02');
-    assert.equal(rf02.slug, 'ROUTE_AUDIT');
+  it('includes 12-REFERENCE_MAP', () => {
+    const t = RECOMMENDED_TEMPLATES.find(t => t.sequence === 12);
+    assert.ok(t, 'Missing seq 12');
+    assert.equal(t.slug, 'REFERENCE_MAP');
+    assert.equal(t.category, 'reference');
   });
 
-  it('includes RF-03 (audit prompts)', () => {
-    const rf03 = RECOMMENDED_TEMPLATES.find((t) => t.category === 'RF' && t.sequence === 3);
-    assert.ok(rf03, 'Missing RF-03');
-    assert.equal(rf03.slug, 'AUDIT_PROMPTS');
-  });
-
-  it('includes RF-04 (improvements)', () => {
-    const rf04 = RECOMMENDED_TEMPLATES.find((t) => t.category === 'RF' && t.sequence === 4);
-    assert.ok(rf04, 'Missing RF-04');
-    assert.equal(rf04.slug, 'IMPROVEMENTS');
+  it('includes 14-IMPROVEMENTS', () => {
+    const t = RECOMMENDED_TEMPLATES.find(t => t.sequence === 14);
+    assert.ok(t, 'Missing seq 14');
+    assert.equal(t.slug, 'IMPROVEMENTS');
+    assert.equal(t.category, 'reference');
   });
 
   it('total templates (required + recommended) = 15', () => {
     assert.equal(REQUIRED_TEMPLATES.length + RECOMMENDED_TEMPLATES.length, 15);
   });
+
+  it('all categories align with getCategoryForSequence', () => {
+    const all = [...REQUIRED_TEMPLATES, ...RECOMMENDED_TEMPLATES];
+    for (const t of all) {
+      const expected = getCategoryForSequence(t.sequence);
+      assert.equal(t.category, expected, `${t.filename} category mismatch: ${t.category} vs ${expected}`);
+    }
+  });
 });
+
+// ─── PROJECT_SIZE_THRESHOLDS ────────────────────────────────────
 
 describe('PROJECT_SIZE_THRESHOLDS', () => {
   it('has three tiers', () => {

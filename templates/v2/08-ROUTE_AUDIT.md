@@ -48,7 +48,7 @@ Complete inventory of all discovered routes — categorized, validated, and tagg
 | 1 | `/` | Homepage | ✅/❌ | ✅/❌ | [status] |
 | 2 | `/services/*` | Services | ✅/❌ | ✅/❌ | [status] |
 | 3 | `/checkout` | Checkout | ✅/❌ | ✅/❌ | [status] |
-| [TODO: Complete list] |
+| <!-- INVESTIGATE: Complete list --> |
 
 ---
 
@@ -60,7 +60,7 @@ Complete inventory of all discovered routes — categorized, validated, and tagg
 |---------|-------|--------|-------------|
 | `/services/:slug` | slug | Database/static | `/services/web-development` |
 | `/products/:id` | id | Database | `/products/123` |
-| [TODO] |
+| <!-- INVESTIGATE --> |
 
 ### Protected Routes (Auth Required)
 
@@ -68,14 +68,14 @@ Complete inventory of all discovered routes — categorized, validated, and tagg
 |-------|-------------|-------------|
 | `/admin/*` | admin | `/auth` |
 | `/account/*` | user | `/auth` |
-| [TODO] |
+| <!-- INVESTIGATE --> |
 
 ### Fallback / Error Routes
 
 | Route | Purpose | Status |
 |-------|---------|--------|
-| `/404` | Not found | [TODO] |
-| `/*` | Catch-all | [TODO] |
+| `/404` | Not found | <!-- INVESTIGATE --> |
+| `/*` | Catch-all | <!-- INVESTIGATE --> |
 
 ---
 

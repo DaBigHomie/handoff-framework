@@ -18,13 +18,13 @@ Collected improvement suggestions for instruction files, AGENTS.md, CI/CD, and a
 
 | File | Current Issue | Suggested Improvement | Priority | Status |
 |------|-------------|----------------------|----------|--------|
-| [TODO] | [what's wrong/missing] | [what to add/change] | P0-P3 | Pending / Done |
+| <!-- INVESTIGATE --> | [what's wrong/missing] | [what to add/change] | P0-P3 | Pending / Done |
 
 ### New Instruction Files Needed
 
 | Filename | applyTo Glob | Purpose |
 |----------|-------------|---------|
-| [TODO].instructions.md | `**/path/**` | [purpose] |
+| <!-- INVESTIGATE -->.instructions.md | `**/path/**` | [purpose] |
 
 ---
 
@@ -36,13 +36,13 @@ Collected improvement suggestions for instruction files, AGENTS.md, CI/CD, and a
 
 | Section | Why Needed | Content Summary |
 |---------|-----------|----------------|
-| [TODO] | [reason] | [what to include] |
+| <!-- INVESTIGATE --> | [reason] | [what to include] |
 
 ### Outdated Information
 
 | Section | What's Wrong | Correction |
 |---------|-------------|-----------|
-| [TODO] | [current content] | [corrected content] |
+| <!-- INVESTIGATE --> | [current content] | [corrected content] |
 
 ### Proposed Additions
 
@@ -51,7 +51,7 @@ Collected improvement suggestions for instruction files, AGENTS.md, CI/CD, and a
 | Failed commands list | Prevent token waste | P0 |
 | Task tracker cross-references | Single source of truth | P0 |
 | Session log template | Track completed/skipped | P1 |
-| [TODO] | [purpose] | [priority] |
+| <!-- INVESTIGATE --> | [purpose] | [priority] |
 
 ---
 
@@ -59,7 +59,7 @@ Collected improvement suggestions for instruction files, AGENTS.md, CI/CD, and a
 
 | # | Improvement | Current State | Proposed | Effort | Impact |
 |---|------------|--------------|----------|--------|--------|
-| 1 | [TODO] | [current] | [proposed] | [hours] | High/Med/Low |
+| 1 | <!-- INVESTIGATE --> | [current] | [proposed] | [hours] | High/Med/Low |
 
 ### Pipeline Gaps
 
@@ -85,7 +85,7 @@ Collected improvement suggestions for instruction files, AGENTS.md, CI/CD, and a
 | Use subagent for research | ~3000 tokens | Avoid loading large files in main context |
 | Skip outdated docs | ~2000 tokens | Mark outdated in master index |
 | Read handoff docs in priority order | ~3000 tokens | P0 docs first, skip P3 unless needed |
-| [TODO] | [savings] | [how] |
+| <!-- INVESTIGATE --> | [savings] | [how] |
 
 ---
 
@@ -95,7 +95,7 @@ Collected improvement suggestions for instruction files, AGENTS.md, CI/CD, and a
 
 | # | Manual Task | Frequency | Automation Method | Effort | ROI |
 |---|------------|-----------|-------------------|--------|-----|
-| 1 | [TODO] | [per session/daily/weekly] | [script/workflow/tool] | [hours] | [hours saved/month] |
+| 1 | <!-- INVESTIGATE --> | [per session/daily/weekly] | [script/workflow/tool] | [hours] | [hours saved/month] |
 
 ### Recommended Automation Scripts to Build
 
@@ -103,7 +103,7 @@ Collected improvement suggestions for instruction files, AGENTS.md, CI/CD, and a
 |--------|---------|-------|--------|----------|
 | `scripts/sync-scoreboard.mts` | Sync SCOREBOARD.json from implementation-plan | JSON files | Updated SCOREBOARD | P1 |
 | `scripts/validate-handoff.mts` | Validate all handoff docs structure | docs/handoff/ | Pass/Fail report | P1 |
-| [TODO] | [purpose] | [input] | [output] | [priority] |
+| <!-- INVESTIGATE --> | [purpose] | [input] | [output] | [priority] |
 
 ---
 
@@ -111,7 +111,7 @@ Collected improvement suggestions for instruction files, AGENTS.md, CI/CD, and a
 
 | Document | Gap | Resolution | Priority |
 |----------|-----|-----------|----------|
-| [TODO] | [what's missing] | [create/update] | P0-P3 |
+| <!-- INVESTIGATE --> | [what's missing] | [create/update] | P0-P3 |
 
 ---
 
@@ -119,7 +119,7 @@ Collected improvement suggestions for instruction files, AGENTS.md, CI/CD, and a
 
 | # | Improvement | Filed | Implemented | Date |
 |---|------------|-------|-------------|------|
-| 1 | [TODO] | Issue #[N] / N/A | Yes/No | [date] |
+| 1 | <!-- INVESTIGATE --> | Issue #[N] / N/A | Yes/No | [date] |
 
 ---
 

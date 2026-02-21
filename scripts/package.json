@@ -7,7 +7,8 @@
         "init": "tsx init-project.mts",
         "generate": "tsx generate-state.mts",
         "migrate": "tsx migrate-existing.mts",
-        "validate": "tsx validate-docs.mts"
+        "validate": "tsx validate-docs.mts",
+        "validate:quality": "node validate-quality.js"
     },
     "dependencies": {
         "@types/node": "^20.11.0",

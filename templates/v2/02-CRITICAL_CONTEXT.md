@@ -1,7 +1,7 @@
 # Critical Context — {{PROJECT_NAME}}
 
 **Category**: Core (CO)  
-**Document**: CO-02  
+**Document**: 02  
 **Version**: 2.0.0  
 **Created**: {{DATE}}  
 **Last Updated**: {{DATE}}
@@ -14,7 +14,7 @@ Must-know information for any agent working on this project. Read this **before 
 
 ```bash
 # Verify you understand the project before starting
-cat docs/handoff/CO-02-CRITICAL_CONTEXT_{{DATE}}.md
+cat docs/handoff/02-CRITICAL_CONTEXT_{{DATE}}.md
 ```
 
 ---
@@ -121,10 +121,10 @@ npm run build             # Build (must succeed)
 
 ## Related Documents
 
-- [CO-00-MASTER_INDEX](./CO-00-MASTER_INDEX_{{DATE}}.md) — Navigation hub
-- [CO-01-PROJECT_STATE](./CO-01-PROJECT_STATE_{{DATE}}.md) — Current metrics
-- [CO-03-TASK_TRACKER](./CO-03-TASK_TRACKER_{{DATE}}.md) — Unified todo list
-- [AR-01-SYSTEM_ARCHITECTURE](./AR-01-SYSTEM_ARCHITECTURE_{{DATE}}.md) — System design
+- [00-MASTER_INDEX](./00-MASTER_INDEX_{{DATE}}.md) — Navigation hub
+- [01-PROJECT_STATE](./01-PROJECT_STATE_{{DATE}}.md) — Current metrics
+- [03-TASK_TRACKER](./03-TASK_TRACKER_{{DATE}}.md) — Unified todo list
+- [06-ARCHITECTURE](./06-ARCHITECTURE_{{DATE}}.md) — System design
 
 ---
 

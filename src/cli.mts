@@ -5,12 +5,12 @@
  * Usage: npx tsx src/cli.mts <command> [args]
  *
  * Commands:
- *   init <project>       Initialize handoff docs in a project
- *   generate <project>   Auto-generate CO-01-PROJECT_STATE
- *   validate <project>   Validate doc standards and naming
- *   migrate <project>    Migrate v1 docs to v2 FSD naming
- *   version              Show framework version
- *   help                 Show help
+ *   init <project> [--session <slug>]    Initialize handoff docs in a project
+ *   generate <project> [--session <slug>] Auto-generate 01-PROJECT_STATE
+ *   validate <project> [--session <slug>] Validate doc standards and naming
+ *   migrate <project> [--session <slug>]  Migrate legacy docs to numeric naming
+ *   version                                Show framework version
+ *   help                                   Show help
  */
 
 import { join, dirname } from 'path';
@@ -23,28 +23,28 @@ const __dirname = dirname(__filename);
 
 const COMMANDS: Record<string, { description: string; usage: string; script: string }> = {
   init: {
-    description: 'Initialize handoff docs in a project (creates docs/handoff/ with FSD templates)',
-    usage: 'npx tsx src/cli.mts init <project-name>',
+    description: 'Initialize handoff docs (creates docs/handoff-{session}/ with numbered templates)',
+    usage: 'npx tsx src/cli.mts init <project-name> [--session <slug>]',
     script: 'init-project.mts',
   },
   generate: {
-    description: 'Auto-generate CO-01-PROJECT_STATE from codebase analysis',
-    usage: 'npx tsx src/cli.mts generate <project-name>',
+    description: 'Auto-generate 01-PROJECT_STATE from codebase analysis',
+    usage: 'npx tsx src/cli.mts generate <project-name> [--session <slug>]',
     script: 'generate-state.mts',
   },
   validate: {
     description: 'Validate handoff docs (naming convention, quality, completeness)',
-    usage: 'npx tsx src/cli.mts validate <project-name>',
+    usage: 'npx tsx src/cli.mts validate <project-name> [--session <slug>]',
     script: 'validate-docs.mts',
   },
   'validate:naming': {
-    description: 'Validate FSD naming convention only',
-    usage: 'npx tsx src/cli.mts validate:naming <project-name>',
+    description: 'Validate numeric naming convention only',
+    usage: 'npx tsx src/cli.mts validate:naming <project-name> [--session <slug>]',
     script: 'validate-naming.mts',
   },
   migrate: {
-    description: 'Migrate v1 handoff docs to v2 FSD naming convention',
-    usage: 'npx tsx src/cli.mts migrate <project-name>',
+    description: 'Migrate legacy (v1/FSD) docs to numeric naming convention',
+    usage: 'npx tsx src/cli.mts migrate <project-name> [--session <slug>]',
     script: 'migrate-existing.mts',
   },
   version: {
@@ -62,17 +62,21 @@ const COMMANDS: Record<string, { description: string; usage: string; script: str
 function showHelp(): void {
   console.log('');
   log.header(`Handoff Framework v${VERSION}`);
-  console.log('Usage: npx tsx src/cli.mts <command> [project-name]');
+  console.log('Usage: npx tsx src/cli.mts <command> [project-name] [--session <slug>]');
   console.log('');
   console.log('Commands:');
   for (const [name, cmd] of Object.entries(COMMANDS)) {
     console.log(`  ${name.padEnd(20)} ${cmd.description}`);
   }
   console.log('');
+  console.log('Options:');
+  console.log('  --session <slug>    Session name for folder (e.g. "20x-e2e-integration")');
+  console.log('                      Creates: docs/handoff-{slug}/ instead of docs/handoff/');
+  console.log('');
   console.log('Examples:');
-  console.log('  npx tsx src/cli.mts init damieus-com-migration');
-  console.log('  npx tsx src/cli.mts validate one4three-co-next-app');
-  console.log('  npx tsx src/cli.mts generate flipflops-sundays-reboot');
+  console.log('  npx tsx src/cli.mts init damieus-com-migration --session 20x-e2e-integration');
+  console.log('  npx tsx src/cli.mts init one4three-co-next-app');
+  console.log('  npx tsx src/cli.mts validate flipflops-sundays-reboot --session checkout-refactor');
   console.log('  npx tsx src/cli.mts version');
   console.log('');
 }

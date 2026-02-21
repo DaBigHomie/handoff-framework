@@ -1,7 +1,7 @@
 # Deployment Roadmap — {{PROJECT_NAME}}
 
 **Category**: Operations (OP)  
-**Document**: OP-01  
+**Document**: 05  
 **Version**: 2.0.0  
 **Created**: {{DATE}}  
 **Last Updated**: {{DATE}}
@@ -169,9 +169,9 @@ npx tsc --noEmit
 
 ## Related Documents
 
-- [CO-01-PROJECT_STATE](./CO-01-PROJECT_STATE_{{DATE}}.md) — Current gate status
-- [CO-02-CRITICAL_CONTEXT](./CO-02-CRITICAL_CONTEXT_{{DATE}}.md) — Deploy constraints
-- [QA-01-TESTID_FRAMEWORK](./QA-01-TESTID_FRAMEWORK_{{DATE}}.md) — Test coverage
+- [01-PROJECT_STATE](./01-PROJECT_STATE_{{DATE}}.md) — Current gate status
+- [02-CRITICAL_CONTEXT](./02-CRITICAL_CONTEXT_{{DATE}}.md) — Deploy constraints
+- [10-TEST_FRAMEWORK](./10-TEST_FRAMEWORK_{{DATE}}.md) — Test coverage
 
 ---
 

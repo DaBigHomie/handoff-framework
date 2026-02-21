@@ -1,51 +1,59 @@
 #!/usr/bin/env node --no-warnings
 /**
- * validate-naming.mts — Validate FSD naming convention in handoff docs
+ * validate-naming.mts — Validate numeric naming convention in handoff docs
  *
- * Usage: npx tsx src/validate-naming.mts <project-name>
- * Example: npx tsx src/validate-naming.mts damieus-com-migration
+ * Usage: npx tsx src/validate-naming.mts <project-name> [--session <slug>]
+ * Example: npx tsx src/validate-naming.mts damieus-com-migration --session 20x-e2e-integration
  *
  * Validates:
- *   - Filenames match FSD regex: {PREFIX}-{SEQ}-{SLUG}_{YYYY-MM-DD}.md
+ *   - Filenames match numeric regex: {NN}-{SLUG}_{YYYY-MM-DD}.md
  *   - Dates are valid ISO 8601
- *   - No sequence gaps within categories
- *   - Required docs exist (CO-00, CO-01, CO-02, OP-01, QA-01)
- *   - Canonical directory structure (docs/handoff/)
+ *   - No sequence duplicates
+ *   - Required docs exist (00-05)
+ *   - Handoff folder exists (docs/handoff/ or docs/handoff-{session}/)
  */
 
 import { readdir } from 'fs/promises';
-import { join } from 'path';
+
 import {
-  FSD_FILENAME_REGEX,
-  FSD_CATEGORIES,
-  FSD_CATEGORY_NAMES,
-  CANONICAL_DOCS_PATH,
+  NUMERIC_FILENAME_REGEX,
   REQUIRED_TEMPLATES,
+  buildDocsPath,
+  getCategoryForSequence,
+  DOC_CATEGORY_NAMES,
   isValidISODate,
-  type FsdCategory,
+  type DocCategory,
   type ValidationIssue,
   type ValidationResult,
 } from './types.js';
-import { log, fileExists, getFrameworkRoot, resolveProjectDir, getHandoffDocsPath } from './utils.js';
+import {
+  log,
+  fileExists,
+  getFrameworkRoot,
+  resolveProjectDir,
+  getHandoffDocsPath,
+  parseSessionArg,
+} from './utils.js';
 import { VERSION } from './version.js';
 
 // ─── Filename Parser ─────────────────────────────────────────────
 interface ParsedFilename {
-  category: FsdCategory;
   sequence: number;
+  category: DocCategory;
   slug: string;
   date: string;
   original: string;
 }
 
 function parseFilename(filename: string): ParsedFilename | null {
-  const match = filename.match(FSD_FILENAME_REGEX);
+  const match = filename.match(NUMERIC_FILENAME_REGEX);
   if (!match) return null;
+  const sequence = parseInt(match[1], 10);
   return {
-    category: match[1] as FsdCategory,
-    sequence: parseInt(match[2], 10),
-    slug: match[3],
-    date: match[4],
+    sequence,
+    category: getCategoryForSequence(sequence),
+    slug: match[2],
+    date: match[3],
     original: filename,
   };
 }
@@ -62,9 +70,9 @@ function validateFilenames(files: string[]): ValidationIssue[] {
     if (!parsed) {
       issues.push({
         severity: 'error',
-        message: `Invalid FSD filename: "${file}" — must match pattern {CO|AR|OP|QA|RF}-{NN}-{SLUG}_{YYYY-MM-DD}.md`,
+        message: `Invalid filename: "${file}" — must match pattern {NN}-{SLUG}_{YYYY-MM-DD}.md`,
         file,
-        rule: 'fsd-filename',
+        rule: 'numeric-filename',
       });
       continue;
     }
@@ -95,44 +103,38 @@ function validateFilenames(files: string[]): ValidationIssue[] {
 
 function validateSequences(files: string[]): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
-  const byCategory: Record<string, number[]> = {};
+  const sequences: number[] = [];
 
   for (const file of files) {
     const parsed = parseFilename(file);
     if (!parsed) continue;
-
-    if (!byCategory[parsed.category]) {
-      byCategory[parsed.category] = [];
-    }
-    byCategory[parsed.category].push(parsed.sequence);
+    sequences.push(parsed.sequence);
   }
 
-  for (const [category, sequences] of Object.entries(byCategory)) {
-    const sorted = [...sequences].sort((a, b) => a - b);
+  const sorted = [...sequences].sort((a, b) => a - b);
 
-    // Check for duplicates
-    const seen = new Set<number>();
-    for (const seq of sorted) {
-      if (seen.has(seq)) {
-        issues.push({
-          severity: 'error',
-          message: `Duplicate sequence ${category}-${String(seq).padStart(2, '0')} — each number must be unique`,
-          rule: 'no-duplicate-seq',
-        });
-      }
-      seen.add(seq);
+  // Check for duplicates
+  const seen = new Set<number>();
+  for (const seq of sorted) {
+    if (seen.has(seq)) {
+      issues.push({
+        severity: 'error',
+        message: `Duplicate sequence ${String(seq).padStart(2, '0')} — each number must be unique`,
+        rule: 'no-duplicate-seq',
+      });
     }
+    seen.add(seq);
+  }
 
-    // Check for gaps (warning, not error)
-    for (let i = 0; i < sorted.length - 1; i++) {
-      if (sorted[i + 1] - sorted[i] > 1) {
-        const gap = sorted[i] + 1;
-        issues.push({
-          severity: 'warning',
-          message: `Sequence gap in ${category}: missing ${category}-${String(gap).padStart(2, '0')} between ${String(sorted[i]).padStart(2, '0')} and ${String(sorted[i + 1]).padStart(2, '0')}`,
-          rule: 'no-seq-gaps',
-        });
-      }
+  // Check for gaps in required range (00-05) — warning only
+  for (let i = 0; i < sorted.length - 1; i++) {
+    if (sorted[i] <= 5 && sorted[i + 1] <= 5 && sorted[i + 1] - sorted[i] > 1) {
+      const gap = sorted[i] + 1;
+      issues.push({
+        severity: 'warning',
+        message: `Sequence gap in required docs: missing ${String(gap).padStart(2, '0')} between ${String(sorted[i]).padStart(2, '0')} and ${String(sorted[i + 1]).padStart(2, '0')}`,
+        rule: 'no-seq-gaps',
+      });
     }
   }
 
@@ -144,9 +146,7 @@ function validateRequiredDocs(files: string[]): ValidationIssue[] {
   const parsedFiles = files.map(parseFilename).filter(Boolean) as ParsedFilename[];
 
   for (const req of REQUIRED_TEMPLATES) {
-    const found = parsedFiles.some(
-      (f) => f.category === req.category && f.sequence === req.sequence,
-    );
+    const found = parsedFiles.some((f) => f.sequence === req.sequence);
     if (!found) {
       issues.push({
         severity: 'error',
@@ -161,15 +161,19 @@ function validateRequiredDocs(files: string[]): ValidationIssue[] {
 
 // ─── Main Validation ─────────────────────────────────────────────
 
-export async function validateNaming(projectDir: string): Promise<ValidationResult> {
+export async function validateNaming(
+  projectDir: string,
+  sessionSlug?: string,
+): Promise<ValidationResult> {
   const issues: ValidationIssue[] = [];
-  const handoffDir = getHandoffDocsPath(projectDir);
+  const handoffDir = getHandoffDocsPath(projectDir, sessionSlug);
+  const docsPath = buildDocsPath(sessionSlug);
 
-  // Check canonical path exists
+  // Check handoff folder exists
   if (!(await fileExists(handoffDir))) {
     issues.push({
       severity: 'error',
-      message: `Handoff docs directory not found: ${CANONICAL_DOCS_PATH}/ — run init to create it`,
+      message: `Handoff docs directory not found: ${docsPath}/ — run init to create it`,
       rule: 'canonical-path',
     });
     return buildResult(issues);
@@ -182,7 +186,7 @@ export async function validateNaming(projectDir: string): Promise<ValidationResu
   if (mdFiles.length === 0) {
     issues.push({
       severity: 'error',
-      message: `No markdown files found in ${CANONICAL_DOCS_PATH}/`,
+      message: `No markdown files found in ${docsPath}/`,
       rule: 'has-docs',
     });
     return buildResult(issues);
@@ -217,26 +221,29 @@ function buildResult(issues: ValidationIssue[]): ValidationResult {
 // ─── CLI Entry Point ─────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  const projectName = process.argv[2];
+  const rawArgs = process.argv.slice(2);
+  const { sessionSlug, remainingArgs } = parseSessionArg(rawArgs);
+  const projectName = remainingArgs[0];
 
   if (!projectName) {
-    log.error('Usage: npx tsx src/validate-naming.mts <project-name>');
+    log.error('Usage: npx tsx src/validate-naming.mts <project-name> [--session <slug>]');
     console.log('');
     console.log('Examples:');
-    console.log('  npx tsx src/validate-naming.mts damieus-com-migration');
+    console.log('  npx tsx src/validate-naming.mts damieus-com-migration --session 20x-e2e-integration');
     console.log('  npx tsx src/validate-naming.mts one4three-co-next-app');
     process.exit(1);
   }
 
   const frameworkRoot = getFrameworkRoot(import.meta.url);
   const projectDir = resolveProjectDir(frameworkRoot, projectName);
+  const docsPath = buildDocsPath(sessionSlug);
 
-  log.header(`FSD Naming Validation — ${projectName}`);
+  log.header(`Naming Validation — ${projectName}`);
   log.info(`Framework: v${VERSION}`);
-  log.info(`Checking: ${CANONICAL_DOCS_PATH}/`);
+  log.info(`Checking: ${docsPath}/`);
   console.log('');
 
-  const result = await validateNaming(projectDir);
+  const result = await validateNaming(projectDir, sessionSlug);
 
   // Print issues grouped by severity
   if (result.issues.length > 0) {
@@ -277,9 +284,9 @@ async function main(): Promise<void> {
   console.log('');
 
   if (result.passed) {
-    log.success(`FSD naming validation PASSED (score: ${result.score}/100)`);
+    log.success(`Naming validation PASSED (score: ${result.score}/100)`);
   } else {
-    log.error(`FSD naming validation FAILED — ${result.errors} error(s) must be fixed`);
+    log.error(`Naming validation FAILED — ${result.errors} error(s) must be fixed`);
     process.exit(1);
   }
 }

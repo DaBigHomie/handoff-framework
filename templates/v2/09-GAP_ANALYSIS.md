@@ -17,13 +17,13 @@
 
 | Area | Status | Gaps | Critical | Effort |
 |------|--------|------|----------|--------|
-| Ecommerce Features | [TODO] | [count] | [count] | [days] |
-| Database Schema | [TODO] | [count] | [count] | [days] |
-| Test Coverage | [TODO] | [count] | [count] | [days] |
-| Frontend Architecture | [TODO] | [count] | [count] | [days] |
-| Performance | [TODO] | [count] | [count] | [days] |
-| CI/CD Pipeline | [TODO] | [count] | [count] | [days] |
-| Documentation | [TODO] | [count] | [count] | [days] |
+| Ecommerce Features | <!-- INVESTIGATE --> | [count] | [count] | [days] |
+| Database Schema | <!-- INVESTIGATE --> | [count] | [count] | [days] |
+| Test Coverage | <!-- INVESTIGATE --> | [count] | [count] | [days] |
+| Frontend Architecture | <!-- INVESTIGATE --> | [count] | [count] | [days] |
+| Performance | <!-- INVESTIGATE --> | [count] | [count] | [days] |
+| CI/CD Pipeline | <!-- INVESTIGATE --> | [count] | [count] | [days] |
+| Documentation | <!-- INVESTIGATE --> | [count] | [count] | [days] |
 | **TOTAL** | | | | |
 
 ---
@@ -34,7 +34,7 @@
 
 | # | Feature | Phase | Status | Has DB | Has UI | Has Tests | Effort |
 |---|---------|-------|--------|--------|--------|-----------|--------|
-| 1 | [TODO] | P1 | DONE / PARTIAL / MISSING | ✅/❌ | ✅/❌ | ✅/❌ | [days] |
+| 1 | <!-- INVESTIGATE --> | P1 | DONE / PARTIAL / MISSING | ✅/❌ | ✅/❌ | ✅/❌ | [days] |
 
 **Status definitions**:
 - **DONE**: Feature complete, tested, deployed
@@ -45,7 +45,7 @@
 
 | Script/Tool | Purpose | Status | Last Run |
 |-------------|---------|--------|----------|
-| [TODO] | [purpose] | Working / Broken / Never run | [date] |
+| <!-- INVESTIGATE --> | [purpose] | Working / Broken / Never run | [date] |
 
 ---
 
@@ -55,13 +55,13 @@
 
 | Table | Exists | Has RLS | Has Indexes | Migration # | Status |
 |-------|--------|---------|-------------|-------------|--------|
-| [TODO] | ✅/❌ | ✅/❌ | ✅/❌ | [number] | OK / Pending |
+| <!-- INVESTIGATE --> | ✅/❌ | ✅/❌ | ✅/❌ | [number] | OK / Pending |
 
 ### Pending Migrations
 
 | Migration | Purpose | Depends On | Blocker? |
 |-----------|---------|------------|----------|
-| [TODO] | [purpose] | [dependency] | Yes/No |
+| <!-- INVESTIGATE --> | [purpose] | [dependency] | Yes/No |
 
 ---
 
@@ -71,12 +71,12 @@
 
 | Category | Components | With test-id | Coverage % | Priority |
 |----------|-----------|-------------|-----------|----------|
-| Cart | [TODO] | [TODO] | [TODO] | P0 |
-| Checkout | [TODO] | [TODO] | [TODO] | P0 |
-| Forms | [TODO] | [TODO] | [TODO] | P1 |
-| Navigation | [TODO] | [TODO] | [TODO] | P1 |
-| Admin | [TODO] | [TODO] | [TODO] | P2 |
-| Auth | [TODO] | [TODO] | [TODO] | P2 |
+| Cart | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | P0 |
+| Checkout | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | P0 |
+| Forms | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | P1 |
+| Navigation | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | P1 |
+| Admin | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | P2 |
+| Auth | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | <!-- INVESTIGATE --> | P2 |
 | **TOTAL** | | | | |
 
 ### Missing Test IDs
@@ -104,7 +104,7 @@
 
 | # | Issue | Impact | Fix Effort | Priority |
 |---|-------|--------|-----------|----------|
-| 1 | [TODO] | [impact] | [hours] | P0-P3 |
+| 1 | <!-- INVESTIGATE --> | [impact] | [hours] | P0-P3 |
 
 ---
 
@@ -137,7 +137,7 @@
 
 | Decision | Options | Recommendation | Impact | Blocker? |
 |----------|---------|----------------|--------|----------|
-| [TODO] | A: [option] / B: [option] | [recommendation] | [impact] | Yes/No |
+| <!-- INVESTIGATE --> | A: [option] / B: [option] | [recommendation] | [impact] | Yes/No |
 
 ---
 
@@ -145,7 +145,7 @@
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|-----------|
-| [TODO] | High/Med/Low | High/Med/Low | [plan] |
+| <!-- INVESTIGATE --> | High/Med/Low | High/Med/Low | [plan] |
 
 ---
 
@@ -153,10 +153,10 @@
 
 | Phase | Features | Effort | Dependencies | Target Date |
 |-------|----------|--------|-------------|-------------|
-| 1 | [TODO] | [days] | [deps] | [date] |
-| 2 | [TODO] | [days] | [deps] | [date] |
-| 3 | [TODO] | [days] | [deps] | [date] |
-| 4 | [TODO] | [days] | [deps] | [date] |
+| 1 | <!-- INVESTIGATE --> | [days] | [deps] | [date] |
+| 2 | <!-- INVESTIGATE --> | [days] | [deps] | [date] |
+| 3 | <!-- INVESTIGATE --> | [days] | [deps] | [date] |
+| 4 | <!-- INVESTIGATE --> | [days] | [deps] | [date] |
 
 ---
 
@@ -164,19 +164,19 @@
 
 ### P0 — Immediate (This Week)
 
-1. [TODO]
+1. <!-- INVESTIGATE -->
 
 ### P1 — High (This Sprint)
 
-1. [TODO]
+1. <!-- INVESTIGATE -->
 
 ### P2 — Medium (Next Sprint)
 
-1. [TODO]
+1. <!-- INVESTIGATE -->
 
 ### P3 — Low (Backlog)
 
-1. [TODO]
+1. <!-- INVESTIGATE -->
 
 ---
 

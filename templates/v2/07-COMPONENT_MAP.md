@@ -15,7 +15,7 @@ Document component → hook dependencies, data flows, and system interactions. P
 ## System Overview
 
 ```
-[TODO: High-level architecture diagram in ASCII or Mermaid]
+<!-- INVESTIGATE: High-level architecture diagram in ASCII or Mermaid -->
 
 Example:
 ┌──────────┐    ┌──────────┐    ┌──────────┐
@@ -37,7 +37,7 @@ Example:
 
 | Hook | Purpose | Used By (Components) | Depends On |
 |------|---------|---------------------|-----------|
-| [TODO] | [purpose] | [component list] | [other hooks/services] |
+| <!-- INVESTIGATE --> | [purpose] | [component list] | [other hooks/services] |
 
 ### Hook → Component Matrix
 
@@ -66,12 +66,12 @@ Example:
 ```
 
 **Steps**:
-1. [TODO: Step-by-step description]
+1. <!-- INVESTIGATE: Step-by-step description -->
 
 ### Flow 2: [Name]
 
 ```
-[TODO]
+<!-- INVESTIGATE -->
 ```
 
 ---
@@ -96,13 +96,13 @@ User wants to purchase something
 
 | State | Provider | Consumers | Storage |
 |-------|----------|-----------|---------|
-| [TODO] | [context/hook] | [component list] | localStorage / Supabase / memory |
+| <!-- INVESTIGATE --> | [context/hook] | [component list] | localStorage / Supabase / memory |
 
 ### Event Chains
 
 | Trigger | Source | Affects | Side Effects |
 |---------|--------|---------|-------------|
-| [TODO] | [component] | [components] | [what happens] |
+| <!-- INVESTIGATE --> | [component] | [components] | [what happens] |
 
 ---
 
@@ -130,7 +130,7 @@ User wants to purchase something
 
 | # | Issue | Components Affected | Workaround |
 |---|-------|-------------------|-----------|
-| 1 | [TODO] | [components] | [workaround] |
+| 1 | <!-- INVESTIGATE --> | [components] | [workaround] |
 
 ---
 

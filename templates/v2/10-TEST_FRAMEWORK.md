@@ -1,7 +1,7 @@
 # TestID Framework — {{PROJECT_NAME}}
 
 **Category**: Quality (QA)  
-**Document**: QA-01  
+**Document**: 10  
 **Version**: 2.0.0  
 **Created**: {{DATE}}  
 **Last Updated**: {{DATE}}
@@ -177,9 +177,9 @@ npx playwright test        # Gate 4: E2E
 
 ## Related Documents
 
-- [CO-01-PROJECT_STATE](./CO-01-PROJECT_STATE_{{DATE}}.md) — Current test metrics
-- [AR-01-SYSTEM_ARCHITECTURE](./AR-01-SYSTEM_ARCHITECTURE_{{DATE}}.md) — What to test
-- [OP-01-DEPLOYMENT_ROADMAP](./OP-01-DEPLOYMENT_ROADMAP_{{DATE}}.md) — Gate requirements
+- [01-PROJECT_STATE](./01-PROJECT_STATE_{{DATE}}.md) — Current test metrics
+- [06-ARCHITECTURE](./06-ARCHITECTURE_{{DATE}}.md) — What to test
+- [05-NEXT_STEPS](./05-NEXT_STEPS_{{DATE}}.md) — Gate requirements
 
 ---
 

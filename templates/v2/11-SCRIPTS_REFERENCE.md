@@ -18,31 +18,31 @@ Catalog of ALL scripts created or used during development — what they do, how 
 
 | Script | Purpose | Usage | Status |
 |--------|---------|-------|--------|
-| [TODO] | [purpose] | `npx tsx scripts/[name]` | ✅ Working / ⚠️ Needs fix |
+| <!-- INVESTIGATE --> | [purpose] | `npx tsx scripts/[name]` | ✅ Working / ⚠️ Needs fix |
 
 ### Build & Deploy Scripts
 
 | Script | Purpose | Usage | Status |
 |--------|---------|-------|--------|
-| [TODO] | [purpose] | `npm run [script]` | ✅ Working |
+| <!-- INVESTIGATE --> | [purpose] | `npm run [script]` | ✅ Working |
 
 ### E2E & Testing Scripts
 
 | Script | Purpose | Usage | Status |
 |--------|---------|-------|--------|
-| [TODO] | [purpose] | `npx playwright test [args]` | ✅ Working |
+| <!-- INVESTIGATE --> | [purpose] | `npx playwright test [args]` | ✅ Working |
 
 ### Database & Migration Scripts
 
 | Script | Purpose | Usage | Status |
 |--------|---------|-------|--------|
-| [TODO] | [purpose] | `node scripts/[name]` | ✅ Working |
+| <!-- INVESTIGATE --> | [purpose] | `node scripts/[name]` | ✅ Working |
 
 ### Automation Scripts
 
 | Script | Purpose | Usage | Status |
 |--------|---------|-------|--------|
-| [TODO] | [purpose] | `bash scripts/[name]` | ✅ Working |
+| <!-- INVESTIGATE --> | [purpose] | `bash scripts/[name]` | ✅ Working |
 
 ---
 
@@ -81,9 +81,9 @@ Catalog of ALL scripts created or used during development — what they do, how 
 | `dev` | `vite` | Development server |
 | `build` | `tsc && vite build` | Production build |
 | `lint` | `eslint .` | Code linting |
-| `test` | [TODO] | Unit tests |
+| `test` | <!-- INVESTIGATE --> | Unit tests |
 | `test:e2e` | `npx playwright test` | E2E tests |
-| `test:devtools` | [TODO] | Browser error detection |
+| `test:devtools` | <!-- INVESTIGATE --> | Browser error detection |
 
 ---
 
