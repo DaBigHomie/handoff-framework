@@ -138,14 +138,14 @@ runs:
 
 ### 4. Sync Script (Copy Templates into Repos)
 
-**How it works**: Extend the existing `documentation-standards/scripts/push-rules.sh` pattern. A script copies templates + CLI scripts directly into each repo's `.github/handoff/` or `scripts/handoff/` directory via the GitHub API.
+**How it works**: Extend the existing `documentation-standards/scripts/push-rules.mts` pattern. A script copies templates + CLI scripts directly into each repo's `.github/handoff/` or `scripts/handoff/` directory via the GitHub API.
 
 | Criteria | Rating | Notes |
 |----------|--------|-------|
 | Copilot coding agents | ✅ Yes | Files are IN the repo — always available |
 | PR workflows / Actions | ✅ Yes | Files are IN the repo |
 | Interactive Copilot Chat | ✅ Yes | Files are IN the repo |
-| Setup complexity | **Medium** | Extend existing `push-rules.sh` infrastructure |
+| Setup complexity | **Medium** | Extend existing `push-rules.mts` infrastructure |
 | Maintenance burden | **High** | Must re-sync 15 templates + 10 scripts across N repos on every update |
 | Version drift risk | **Medium** | Drift happens between sync runs; no lockfile mechanism |
 
@@ -289,7 +289,7 @@ Add handoff framework instructions to every repo's `AGENTS.md` and `.github/copi
 
 **Implementation**:
 1. Create a standard `HANDOFF_BOOTSTRAP.md` snippet
-2. Append to `AGENTS.md` in each repo (can be automated via `push-rules.sh` pattern)
+2. Append to `AGENTS.md` in each repo (can be automated via `push-rules.mts` pattern)
 3. Add a `handoff-framework.instructions.md` to `documentation-standards/workspace-rules/` for auto-sync
 
 **Snippet to add to each AGENTS.md**:
@@ -329,7 +329,7 @@ Create a reusable composite action and a workflow template that repos can adopt 
 **Implementation**:
 1. Create `.github/actions/validate-handoff/action.yml` in the framework repo
 2. Create a reusable workflow `.github/workflows/validate-handoff.yml`
-3. Add workflow to consuming repos (can be synced via `push-rules.sh`)
+3. Add workflow to consuming repos (can be synced via `push-rules.mts`)
 
 **Reusable workflow** (consumers reference this):
 ```yaml
@@ -358,7 +358,7 @@ jobs:
 
 The `documentation-standards` repo already:
 - Has a `workspace-rules/repo-registry.json` listing 11 repos
-- Has `scripts/push-rules.sh` that syncs `.instructions.md` files via GitHub API
+- Has `scripts/push-rules.mts` that syncs `.instructions.md` files via GitHub API
 - Uses `gh api --method PUT` to create/update files in target repos
 
 **Additions to documentation-standards**:
@@ -381,9 +381,9 @@ The `documentation-standards` repo already:
 
 2. **Registry update**: Add `handoff-framework` to `repo-registry.json` (it's already a DaBigHomie repo)
 
-3. **Optional**: Extend `push-rules.sh` to also sync the `validate-handoff.yml` workflow file into consuming repos
+3. **Optional**: Extend `push-rules.mts` to also sync the `validate-handoff.yml` workflow file into consuming repos
 
-This means running `./scripts/push-rules.sh` once syncs both the instruction rules AND the handoff framework instructions to all repos simultaneously.
+This means running `./scripts/push-rules.mts` once syncs both the instruction rules AND the handoff framework instructions to all repos simultaneously.
 
 ---
 
@@ -397,7 +397,7 @@ This means running `./scripts/push-rules.sh` once syncs both the instruction rul
 | 4 | **Verify** — `npx @dabighomie/handoff-framework version` from any directory | 5 min | Step 3 |
 | 5 | **Create AGENTS.md bootstrap snippet** | 15 min | Step 3 |
 | 6 | **Create `handoff-framework.instructions.md`** in documentation-standards | 10 min | Step 3 |
-| 7 | **Sync to all repos** — `./scripts/push-rules.sh` | 5 min | Steps 5-6 |
+| 7 | **Sync to all repos** — `./scripts/push-rules.mts` | 5 min | Steps 5-6 |
 | 8 | **Create GitHub Action** — composite action + reusable workflow | 45 min | Step 3 |
 | 9 | **Sync workflow to repos** — extend push-rules or manual | 15 min | Step 8 |
 | 10 | **Test end-to-end** — assign a Copilot agent to an issue, verify it can use the framework | 20 min | Steps 7-9 |
