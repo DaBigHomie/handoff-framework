@@ -5,7 +5,7 @@
  */
 
 import { access, readFile, readdir, stat, writeFile, mkdir } from 'fs/promises';
-import { join, dirname, basename } from 'path';
+import { join, dirname, basename, isAbsolute, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -157,14 +157,25 @@ export function isInstalledFromNpm(frameworkRoot: string): boolean {
 }
 
 /**
- * Resolve project directory by name.
+ * Resolve project directory by name or path.
  *
- * - **Local dev**: framework is at workspace-root/.handoff-framework/,
- *   projects sit at workspace-root/{project-name}/
- * - **npm-installed**: framework is inside node_modules/,
- *   projects sit at process.cwd()/{project-name}/ (or cwd IS the project)
+ * Resolution order:
+ * 1. If projectName is an absolute path → use it directly
+ * 2. If projectName is a relative path (contains / or ..) → resolve from cwd
+ * 3. If projectName is a bare name:
+ *    - **npm-installed**: resolve from cwd
+ *    - **Local dev**: sibling to framework dir (workspace-root/{name}/)
  */
 export function resolveProjectDir(frameworkRoot: string, projectName: string): string {
+  // Absolute path — use directly
+  if (isAbsolute(projectName)) {
+    return projectName;
+  }
+  // Relative path (e.g. ../damieus-com-migration, ./foo) — resolve from cwd
+  if (projectName.includes('/') || projectName.startsWith('.')) {
+    return resolve(process.cwd(), projectName);
+  }
+  // Bare project name
   if (isInstalledFromNpm(frameworkRoot)) {
     return join(process.cwd(), projectName);
   }
