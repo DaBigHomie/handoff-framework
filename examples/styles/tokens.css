@@ -1,0 +1,86 @@
+/**
+ * tokens.css — Reference Implementation
+ *
+ * Semantic CSS custom properties for light and dark themes.
+ * Import this in your app's global CSS or layout.
+ *
+ * These values are the canonical source referenced by:
+ * - docs/DS-REFERENCE.md § Token Registry
+ * - tailwind.config.ts → theme.extend.colors
+ *
+ * @see docs/DS-REFERENCE.md
+ */
+
+/* ─── Light Theme (default) ─── */
+:root {
+  /* Backgrounds */
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-secondary: #f8f9fa;
+  --color-bg-surface-hover: #f1f3f5;
+
+  /* Text */
+  --color-text-primary: #0f0f0f;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+
+  /* Brand */
+  --color-brand-primary: #6366f1;
+  --color-brand-primary-hover: #4f46e5;
+  --color-on-brand: #ffffff;
+
+  /* Borders */
+  --color-border-default: #e5e7eb;
+
+  /* Danger */
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-on-danger: #ffffff;
+
+  /* Success */
+  --color-success: #22c55e;
+
+  /* Warning */
+  --color-warning: #f59e0b;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+}
+
+/* ─── Dark Theme ─── */
+[data-theme="dark"] {
+  --color-bg-surface: #0f0f0f;
+  --color-bg-surface-secondary: #1a1a1a;
+  --color-bg-surface-hover: #262626;
+
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+
+  --color-brand-primary: #818cf8;
+  --color-brand-primary-hover: #6366f1;
+  --color-on-brand: #ffffff;
+
+  --color-border-default: #374151;
+
+  --color-danger: #f87171;
+  --color-danger-hover: #ef4444;
+  --color-on-danger: #ffffff;
+
+  --color-success: #4ade80;
+
+  --color-warning: #fbbf24;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+}

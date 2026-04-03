@@ -174,6 +174,12 @@ npx tsx src/validate-docs.mts <PROJECT_PATH> --session <slug>     # Quality: ≥
 node scripts/validate-quality.js <PROJECT_PATH>/docs/handoff-<slug>/  # Handoff quality: ≥75%
 ```
 
+## Design System Safety
+
+> ⚠️ Read `docs/DS-REFERENCE.md` before making ANY styling change. See `templates/ds-safety-block.md` for the full safety checklist.
+
+---
+
 ## Commit Rules
 
 - **Only commit files you created, edited, or updated** — never stage unrelated files

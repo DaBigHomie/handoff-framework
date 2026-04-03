@@ -27,7 +27,9 @@
         "typecheck": "tsc --noEmit",
         "build": "tsc",
         "prepublishOnly": "npm run typecheck && npm run build && npm test",
-        "version:bump": "tsx src/version-bump.mts"
+        "version:bump": "tsx src/version-bump.mts",
+        "ds:lint": "bash scripts/ds-lint.sh",
+        "ds:coverage": "tsx scripts/ds-token-coverage.mts"
     },
     "keywords": [
         "handoff",
