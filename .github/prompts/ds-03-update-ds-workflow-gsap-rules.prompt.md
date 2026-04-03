@@ -25,7 +25,7 @@ cat AGENTS.md
 ls .github/instructions/*.instructions.md
 
 # 3. DS Reference (prerequisite — must exist)
-cat docs/DS-REFERENCE.md
+cat docs/DESIGN-SYSTEM-REFERENCE.md
 
 # 4. Active sprint context
 cat docs/active/INDEX.md 2>/dev/null || echo "No active index"
@@ -41,7 +41,7 @@ cat docs/active/INDEX.md 2>/dev/null || echo "No active index"
 
 ## Objective
 
-Locate the DS-WORKFLOW document (or equivalent workflow file governing Design System usage in this repo) and update it with comprehensive **GSAP rules** derived from `docs/DS-REFERENCE.md`. The GSAP rules must specify: approved GSAP plugins, version pinning strategy, performance budget per animation, forbidden usage patterns (e.g., animating layout properties), required `will-change` cleanup, and how GSAP integrates with the dark mode token system. This ensures every agent working on animations uses a consistent, performant, and accessible approach.
+Locate the DS-WORKFLOW document (or equivalent workflow file governing Design System usage in this repo) and update it with comprehensive **GSAP rules** derived from `docs/DESIGN-SYSTEM-REFERENCE.md`. The GSAP rules must specify: approved GSAP plugins, version pinning strategy, performance budget per animation, forbidden usage patterns (e.g., animating layout properties), required `will-change` cleanup, and how GSAP integrates with the dark mode token system. This ensures every agent working on animations uses a consistent, performant, and accessible approach.
 
 ---
 
@@ -59,7 +59,7 @@ ls -la docs/ 2>/dev/null
 find docs/ -name "*.md" 2>/dev/null | head -20
 
 # Verify prerequisite
-test -f docs/DS-REFERENCE.md && echo "PASS: DS-REFERENCE.md exists" || echo "FAIL: Run ds-01 first"
+test -f docs/DESIGN-SYSTEM-REFERENCE.md && echo "PASS: DS-REFERENCE.md exists" || echo "FAIL: Run ds-01 first"
 ```
 
 ---
@@ -82,7 +82,7 @@ A `docs/DS-WORKFLOW.md` file exists (created if absent, updated if present) with
 | File | Action | Exists? | Purpose |
 |------|--------|---------|---------|
 | `docs/DS-WORKFLOW.md` | CREATE or MODIFY | Verify | Add/update GSAP rules section |
-| `docs/DS-REFERENCE.md` | READ ONLY | Yes (ds-01) | Source rules for GSAP section |
+| `docs/DESIGN-SYSTEM-REFERENCE.md` | READ ONLY | Yes (ds-01) | Source rules for GSAP section |
 
 ---
 
@@ -124,7 +124,7 @@ grep -rn "gsap\|GSAP" src/ 2>/dev/null | grep -v node_modules | head -20
 
 ## Success Criteria
 
-`docs/DS-WORKFLOW.md` contains a GSAP Rules section with all eight sub-sections: approved plugins, version pinning, performance budget, forbidden patterns, cleanup requirements, dark mode integration, accessibility requirements, and code examples. Every rule has at least one correct and one incorrect example. The document cross-references `docs/DS-REFERENCE.md` for token authority.
+`docs/DS-WORKFLOW.md` contains a GSAP Rules section with all eight sub-sections: approved plugins, version pinning, performance budget, forbidden patterns, cleanup requirements, dark mode integration, accessibility requirements, and code examples. Every rule has at least one correct and one incorrect example. The document cross-references `docs/DESIGN-SYSTEM-REFERENCE.md` for token authority.
 
 ---
 
@@ -236,7 +236,7 @@ None.
 
 ```bash
 # ds-01 must be complete
-test -f docs/DS-REFERENCE.md || { echo "BLOCKED: ds-01 (Create DS reference doc) must complete first"; exit 1; }
+test -f docs/DESIGN-SYSTEM-REFERENCE.md || { echo "BLOCKED: ds-01 (Create DS reference doc) must complete first"; exit 1; }
 echo "PASS: Prerequisite satisfied"
 ```
 

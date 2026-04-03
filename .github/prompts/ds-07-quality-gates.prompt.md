@@ -25,7 +25,7 @@ cat AGENTS.md
 ls .github/instructions/*.instructions.md
 
 # 3. DS authority docs (all must exist)
-cat docs/DS-REFERENCE.md
+cat docs/DESIGN-SYSTEM-REFERENCE.md
 cat docs/DS-WORKFLOW.md
 cat docs/DS-AUDIT-BASELINE.md
 
@@ -133,7 +133,7 @@ ls scripts/ 2>/dev/null
 
 ## Design System Safety
 
-> ⚠️ Read `docs/DS-REFERENCE.md` before modifying lint patterns.
+> ⚠️ Read `docs/DESIGN-SYSTEM-REFERENCE.md` before modifying lint patterns.
 
 **Gate must catch**:
 - `#[0-9a-fA-F]{3,6}` — hardcoded hex colors
@@ -218,7 +218,7 @@ fi
 if [ "$VIOLATIONS" -gt 0 ]; then
   echo ""
   echo "❌ DS LINT FAILED: $VIOLATIONS violation type(s) found"
-  echo "   Fix violations before merging. See docs/DS-REFERENCE.md for guidance."
+  echo "   Fix violations before merging. See docs/DESIGN-SYSTEM-REFERENCE.md for guidance."
   exit 1
 fi
 

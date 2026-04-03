@@ -4,7 +4,7 @@
  * Scans component files for DS token usage.
  * Exits 1 if any component lacks token classes.
  *
- * @see docs/DS-REFERENCE.md — Token Registry
+ * @see docs/DESIGN-SYSTEM-REFERENCE.md — Token Registry
  */
 
 import { readdir, readFile } from "node:fs/promises"

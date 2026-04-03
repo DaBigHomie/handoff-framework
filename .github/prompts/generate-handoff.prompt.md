@@ -176,7 +176,7 @@ node scripts/validate-quality.js <PROJECT_PATH>/docs/handoff-<slug>/  # Handoff 
 
 ## Design System Safety
 
-> ⚠️ Read `docs/DS-REFERENCE.md` before making ANY styling change. See `templates/ds-safety-block.md` for the full safety checklist.
+> ⚠️ Read `docs/DESIGN-SYSTEM-REFERENCE.md` before making ANY styling change. See `templates/ds-safety-block.md` for the full safety checklist.
 
 ---
 

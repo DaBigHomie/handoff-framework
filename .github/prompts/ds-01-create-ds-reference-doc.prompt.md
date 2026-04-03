@@ -57,7 +57,7 @@ ls docs/ 2>/dev/null
 
 ## Intended Result
 
-A file `docs/DS-REFERENCE.md` exists containing:
+A file `docs/DESIGN-SYSTEM-REFERENCE.md` exists containing:
 - **Token Registry**: All color, spacing, typography, and shadow tokens with semantic names
 - **Component Inventory**: List of all UI components in the framework with status (stable/beta/deprecated)
 - **Animation Rules**: GSAP usage guidelines, performance constraints, and approved animation patterns
@@ -73,7 +73,7 @@ Downstream prompts `ds-02` and `ds-03` depend on this document existing and bein
 
 | File | Action | Exists? | Purpose |
 |------|--------|---------|---------|
-| `docs/DS-REFERENCE.md` | CREATE | No | Primary DS reference document |
+| `docs/DESIGN-SYSTEM-REFERENCE.md` | CREATE | No | Primary DS reference document |
 | `docs/active/INDEX.md` | MODIFY | Verify | Add DS reference to active docs index |
 
 ---
@@ -114,7 +114,7 @@ grep -rn "docs/" .github/prompts/ 2>/dev/null
 
 ## Success Criteria
 
-`docs/DS-REFERENCE.md` exists with all six sections (Token Registry, Component Inventory, Animation Rules, Theming Guide, Authoring Rules, Version header). The document accurately reflects the current codebase state — discovered via Pre-Flight grep, not assumed. Downstream agents can use this doc as the sole reference without reading the entire codebase.
+`docs/DESIGN-SYSTEM-REFERENCE.md` exists with all six sections (Token Registry, Component Inventory, Animation Rules, Theming Guide, Authoring Rules, Version header). The document accurately reflects the current codebase state — discovered via Pre-Flight grep, not assumed. Downstream agents can use this doc as the sole reference without reading the entire codebase.
 
 ---
 
@@ -123,13 +123,13 @@ grep -rn "docs/" .github/prompts/ 2>/dev/null
 ```bash
 #!/bin/bash
 # Validate DS reference doc exists and has required sections
-test -f docs/DS-REFERENCE.md || { echo "FAIL: DS-REFERENCE.md missing"; exit 1; }
-grep -q "Token Registry" docs/DS-REFERENCE.md || { echo "FAIL: Missing Token Registry section"; exit 1; }
-grep -q "Component Inventory" docs/DS-REFERENCE.md || { echo "FAIL: Missing Component Inventory"; exit 1; }
-grep -q "Animation Rules" docs/DS-REFERENCE.md || { echo "FAIL: Missing Animation Rules"; exit 1; }
-grep -q "Theming Guide" docs/DS-REFERENCE.md || { echo "FAIL: Missing Theming Guide"; exit 1; }
-grep -q "Authoring Rules" docs/DS-REFERENCE.md || { echo "FAIL: Missing Authoring Rules"; exit 1; }
-echo "PASS: DS-REFERENCE.md complete"
+test -f docs/DESIGN-SYSTEM-REFERENCE.md || { echo "FAIL: DESIGN-SYSTEM-REFERENCE.md missing"; exit 1; }
+grep -q "Token Registry" docs/DESIGN-SYSTEM-REFERENCE.md || { echo "FAIL: Missing Token Registry section"; exit 1; }
+grep -q "Component Inventory" docs/DESIGN-SYSTEM-REFERENCE.md || { echo "FAIL: Missing Component Inventory"; exit 1; }
+grep -q "Animation Rules" docs/DESIGN-SYSTEM-REFERENCE.md || { echo "FAIL: Missing Animation Rules"; exit 1; }
+grep -q "Theming Guide" docs/DESIGN-SYSTEM-REFERENCE.md || { echo "FAIL: Missing Theming Guide"; exit 1; }
+grep -q "Authoring Rules" docs/DESIGN-SYSTEM-REFERENCE.md || { echo "FAIL: Missing Authoring Rules"; exit 1; }
+echo "PASS: DESIGN-SYSTEM-REFERENCE.md complete"
 npx tsc --noEmit || exit 1
 npm run lint || exit 1
 npm run build || exit 1
@@ -230,7 +230,7 @@ None. Documentation only.
 ```bash
 # Ensure docs/ directory exists
 test -d docs/ || { echo "FAIL: docs/ directory missing"; exit 1; }
-echo "PASS: Ready to create DS-REFERENCE.md"
+echo "PASS: Ready to create DESIGN-SYSTEM-REFERENCE.md"
 ```
 
 ---

@@ -2,7 +2,7 @@
 
 **Date**: 2026-04-03
 **Auditor**: Copilot Coding Agent
-**Rules Authority**: `docs/DS-REFERENCE.md`, `docs/DS-WORKFLOW.md`
+**Rules Authority**: `docs/DESIGN-SYSTEM-REFERENCE.md`, `docs/DS-WORKFLOW.md`
 
 ---
 
@@ -71,7 +71,7 @@ No button components exist in this CLI framework. SmartButton will be created as
 - `templates/v1/02-CRITICAL-CONTEXT-TEMPLATE.md:189` — update legacy example (P2, low priority)
 
 ### Out of Scope
-- `docs/DS-REFERENCE.md` — contains hex values as documentation (token definitions), not violations
+- `docs/DESIGN-SYSTEM-REFERENCE.md` — contains hex values as documentation (token definitions), not violations
 - `docs/DS-WORKFLOW.md` — contains code examples showing correct/incorrect patterns
 - `.github/prompts/ds-*.prompt.md` — spec files, not runtime code
 

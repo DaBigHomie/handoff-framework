@@ -3,7 +3,7 @@
 # Scans src/ and examples/ for forbidden DS patterns.
 # Exit 1 if violations found, exit 0 if clean.
 #
-# @see docs/DS-REFERENCE.md — Authoring Rules
+# @see docs/DESIGN-SYSTEM-REFERENCE.md — Authoring Rules
 # @see templates/ds-safety-block.md — Full forbidden pattern list
 
 set -euo pipefail
@@ -73,7 +73,7 @@ fi
 echo ""
 if [ "$VIOLATIONS" -gt 0 ]; then
   echo "❌ DS LINT FAILED: $VIOLATIONS violation type(s) found"
-  echo "   Fix violations before merging. See docs/DS-REFERENCE.md for guidance."
+  echo "   Fix violations before merging. See docs/DESIGN-SYSTEM-REFERENCE.md for guidance."
   exit 1
 fi
 

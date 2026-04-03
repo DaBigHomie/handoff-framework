@@ -2,7 +2,7 @@
 
 **Version**: 1.0.0
 **Updated**: 2026-04-03
-**Authority**: `docs/DS-REFERENCE.md`
+**Authority**: `docs/DESIGN-SYSTEM-REFERENCE.md`
 
 ---
 
@@ -201,20 +201,20 @@ useEffect(() => {
 
 1. Create file in `src/components/ComponentName.tsx`
 2. Define TypeScript interface for all props
-3. Use only semantic token classes (see `docs/DS-REFERENCE.md` § Token Registry)
+3. Use only semantic token classes (see `docs/DESIGN-SYSTEM-REFERENCE.md` § Token Registry)
 4. Add `data-testid` attribute with kebab-case name
 5. Add `aria-label` to interactive elements
 6. Check `prefers-reduced-motion` if animated
 7. Clean up GSAP with `ctx.revert()` if animated
 8. Export from barrel `src/components/index.ts`
 9. Write tests covering all variants
-10. Update Component Inventory in DS-REFERENCE.md
+10. Update Component Inventory in DESIGN-SYSTEM-REFERENCE.md
 
 ### Token Change Workflow
 
 1. Add variable to `src/styles/tokens.css` (both `:root` and `[data-theme="dark"]`)
 2. Map in `tailwind.config.ts` → `theme.extend.colors`
-3. Update Token Registry in `docs/DS-REFERENCE.md`
+3. Update Token Registry in `docs/DESIGN-SYSTEM-REFERENCE.md`
 4. Run `npm run ds:lint` to verify
 5. Commit with `type:refactor` or `type:feat` label
 

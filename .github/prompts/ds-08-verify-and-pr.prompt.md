@@ -25,7 +25,7 @@ cat AGENTS.md
 ls .github/instructions/*.instructions.md
 
 # 3. All DS docs (final verification — all must exist and be complete)
-cat docs/DS-REFERENCE.md
+cat docs/DESIGN-SYSTEM-REFERENCE.md
 cat docs/DS-WORKFLOW.md
 cat docs/DS-AUDIT-BASELINE.md
 
@@ -52,7 +52,7 @@ This is the final task in the DS chain. Run the complete verification suite acro
 ```bash
 # Verify ALL prerequisites exist
 echo "=== Checking DS Chain Deliverables ==="
-test -f docs/DS-REFERENCE.md && echo "✅ ds-01: DS-REFERENCE.md" || echo "❌ ds-01: MISSING"
+test -f docs/DESIGN-SYSTEM-REFERENCE.md && echo "✅ ds-01: DESIGN-SYSTEM-REFERENCE.md" || echo "❌ ds-01: MISSING"
 test -f templates/ds-safety-block.md && echo "✅ ds-02: ds-safety-block.md" || echo "❌ ds-02: MISSING"
 test -f docs/DS-WORKFLOW.md && echo "✅ ds-03: DS-WORKFLOW.md" || echo "❌ ds-03: MISSING"
 test -f docs/DS-AUDIT-BASELINE.md && echo "✅ ds-04: DS-AUDIT-BASELINE.md" || echo "❌ ds-04: MISSING"
@@ -154,7 +154,7 @@ set -euo pipefail
 echo "=== DS Chain Final Verification ==="
 
 # 1. All deliverables
-test -f docs/DS-REFERENCE.md || { echo "FAIL: DS-REFERENCE.md"; exit 1; }
+test -f docs/DESIGN-SYSTEM-REFERENCE.md || { echo "FAIL: DESIGN-SYSTEM-REFERENCE.md"; exit 1; }
 test -f docs/DS-WORKFLOW.md || { echo "FAIL: DS-WORKFLOW.md"; exit 1; }
 test -f docs/DS-AUDIT-BASELINE.md || { echo "FAIL: DS-AUDIT-BASELINE.md"; exit 1; }
 test -f templates/ds-safety-block.md || { echo "FAIL: ds-safety-block.md"; exit 1; }
@@ -212,7 +212,7 @@ This PR implements the full Design System foundation for @dabighomie/handoff-fra
 | Token coverage gate | ❌ None | ✅ Active |
 
 ### Docs Created
-- `docs/DS-REFERENCE.md` — Token registry + component inventory
+- `docs/DESIGN-SYSTEM-REFERENCE.md` — Token registry + component inventory
 - `docs/DS-WORKFLOW.md` — GSAP rules + authoring workflow
 - `docs/DS-AUDIT-BASELINE.md` — Baseline violation report (all resolved)
 - `templates/ds-safety-block.md` — Reusable safety snippet
@@ -264,7 +264,7 @@ All routes (final verification ensures nothing regressed).
 
 ```bash
 # All 7 previous DS tasks must be complete
-test -f docs/DS-REFERENCE.md || { echo "BLOCKED: ds-01"; exit 1; }
+test -f docs/DESIGN-SYSTEM-REFERENCE.md || { echo "BLOCKED: ds-01"; exit 1; }
 test -f docs/DS-WORKFLOW.md || { echo "BLOCKED: ds-03"; exit 1; }
 test -f docs/DS-AUDIT-BASELINE.md || { echo "BLOCKED: ds-04"; exit 1; }
 test -f scripts/ds-lint.sh || { echo "BLOCKED: ds-07"; exit 1; }

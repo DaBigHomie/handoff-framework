@@ -25,7 +25,7 @@ cat AGENTS.md
 ls .github/instructions/*.instructions.md
 
 # 3. DS authority docs (all must exist)
-cat docs/DS-REFERENCE.md
+cat docs/DESIGN-SYSTEM-REFERENCE.md
 cat docs/DS-WORKFLOW.md
 cat docs/DS-AUDIT-BASELINE.md
 
@@ -130,7 +130,7 @@ grep -rn "#[0-9a-fA-F]\{3,6\}" src/ --include="*.tsx" 2>/dev/null | grep -i "but
 
 ## Design System Safety
 
-> ⚠️ Read `docs/DS-REFERENCE.md` before making ANY styling change.
+> ⚠️ Read `docs/DESIGN-SYSTEM-REFERENCE.md` before making ANY styling change.
 
 **Forbidden patterns** (agent must refuse):
 - Hardcoded hex colors: `#fff`, `#1a2b3c`, `rgb(...)`, `rgba(...)`

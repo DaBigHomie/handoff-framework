@@ -25,7 +25,7 @@ cat AGENTS.md
 ls .github/instructions/*.instructions.md
 
 # 3. DS Reference (prerequisite — must exist)
-cat docs/DS-REFERENCE.md
+cat docs/DESIGN-SYSTEM-REFERENCE.md
 
 # 4. Active sprint context
 cat docs/active/INDEX.md 2>/dev/null || echo "No active index"
@@ -41,7 +41,7 @@ cat docs/active/INDEX.md 2>/dev/null || echo "No active index"
 
 ## Objective
 
-Audit all existing `.prompt.md` files in `.github/prompts/` and any prompt templates in `templates/` to add **DS safety rules** derived from `docs/DS-REFERENCE.md`. Safety rules prevent agents from: using hardcoded hex/rgb values, using hardcoded px units, bypassing the token system, or introducing unapproved animation patterns. Every prompt that touches UI or styling must include an enforceable Design System checklist section referencing the DS-REFERENCE doc.
+Audit all existing `.prompt.md` files in `.github/prompts/` and any prompt templates in `templates/` to add **DS safety rules** derived from `docs/DESIGN-SYSTEM-REFERENCE.md`. Safety rules prevent agents from: using hardcoded hex/rgb values, using hardcoded px units, bypassing the token system, or introducing unapproved animation patterns. Every prompt that touches UI or styling must include an enforceable Design System checklist section referencing the DESIGN-SYSTEM-REFERENCE doc.
 
 ---
 
@@ -53,11 +53,11 @@ find .github/prompts/ -name "*.prompt.md" 2>/dev/null
 find templates/ -name "*.prompt.md" -o -name "*template*" 2>/dev/null | grep -v node_modules | head -20
 
 # Check for existing DS safety rules in prompts
-grep -rn "DS-REFERENCE\|design.system\|hardcoded.hex\|safety.rule" .github/prompts/ 2>/dev/null
+grep -rn "DESIGN-SYSTEM-REFERENCE\|design.system\|hardcoded.hex\|safety.rule" .github/prompts/ 2>/dev/null
 grep -rn "hex\|#[0-9a-fA-F]\{3,6\}\|rgb(" .github/prompts/ 2>/dev/null | grep -v "#[0-9]\{1\}" | head -20
 
 # Verify prerequisite
-test -f docs/DS-REFERENCE.md && echo "PASS: DS-REFERENCE.md exists" || echo "FAIL: Run ds-01 first"
+test -f docs/DESIGN-SYSTEM-REFERENCE.md && echo "PASS: DESIGN-SYSTEM-REFERENCE.md exists" || echo "FAIL: Run ds-01 first"
 ```
 
 ---
@@ -65,9 +65,9 @@ test -f docs/DS-REFERENCE.md && echo "PASS: DS-REFERENCE.md exists" || echo "FAI
 ## Intended Result
 
 All `.prompt.md` files that contain UI/styling instructions have a **Design System Safety** section that:
-- References `docs/DS-REFERENCE.md` as the authority
+- References `docs/DESIGN-SYSTEM-REFERENCE.md` as the authority
 - Explicitly forbids hardcoded hex/rgb/px values
-- Lists the agent bootstrap step to load `DS-REFERENCE.md`
+- Lists the agent bootstrap step to load `DESIGN-SYSTEM-REFERENCE.md`
 - Includes a pre-commit check that greps for forbidden patterns
 
 A new reusable snippet `templates/ds-safety-block.md` exists for easy inclusion in future prompts.
@@ -81,7 +81,7 @@ A new reusable snippet `templates/ds-safety-block.md` exists for easy inclusion 
 | `templates/ds-safety-block.md` | CREATE | No | Reusable DS safety rules snippet |
 | `.github/prompts/generate-handoff.prompt.md` | MODIFY | Yes | Add DS safety block |
 | `templates/prompt-template.prompt.md` | MODIFY | Verify | Embed DS safety reference in base template |
-| `docs/DS-REFERENCE.md` | READ ONLY | Yes (ds-01) | Source of safety rules |
+| `docs/DESIGN-SYSTEM-REFERENCE.md` | READ ONLY | Yes (ds-01) | Source of safety rules |
 
 ---
 
@@ -113,7 +113,7 @@ grep -rn "Design System" .github/prompts/ 2>/dev/null
 ## Design System
 
 - [ ] `templates/ds-safety-block.md` contains all forbidden pattern checks
-- [ ] Safety block references `docs/DS-REFERENCE.md` by exact path
+- [ ] Safety block references `docs/DESIGN-SYSTEM-REFERENCE.md` by exact path
 - [ ] Pre-commit grep patterns cover: hex colors, rgb(), hardcoded px values
 
 ---
@@ -138,8 +138,8 @@ if [ "$HEX_VIOLATIONS" -gt 0 ]; then
   exit 1
 fi
 
-# Verify DS-REFERENCE reference exists in updated prompts
-grep -l "DS-REFERENCE" .github/prompts/*.prompt.md 2>/dev/null | wc -l | xargs -I{} test {} -gt 0 || echo "WARN: No prompts reference DS-REFERENCE"
+# Verify DESIGN-SYSTEM-REFERENCE reference exists in updated prompts
+grep -l "DESIGN-SYSTEM-REFERENCE" .github/prompts/*.prompt.md 2>/dev/null | wc -l | xargs -I{} test {} -gt 0 || echo "WARN: No prompts reference DESIGN-SYSTEM-REFERENCE"
 echo "PASS: DS safety rules applied"
 npx tsc --noEmit || exit 1
 npm run lint || exit 1
@@ -155,13 +155,13 @@ npm run build || exit 1
 
 ## Design System Safety
 
-> ⚠️ Read `docs/DS-REFERENCE.md` before making ANY styling change.
+> ⚠️ Read `docs/DESIGN-SYSTEM-REFERENCE.md` before making ANY styling change.
 
 **Forbidden patterns** (agent must refuse and report these):
 - Hardcoded hex colors: `#fff`, `#1a2b3c`, `rgb(...)`, `rgba(...)`
 - Hardcoded pixel values: `16px`, `margin: 8px`, `width: 200px`
 - Inline styles that bypass the token system
-- GSAP animations not listed in DS-REFERENCE § Animation Rules
+- GSAP animations not listed in DESIGN-SYSTEM-REFERENCE § Animation Rules
 
 **Pre-commit safety check**:
 ```bash
@@ -176,7 +176,7 @@ grep -rn "[0-9]\+px[^-]" src/ --include="*.tsx" --include="*.ts" && echo "FAIL: 
 
 ```bash
 # Find all prompts that need the safety block added
-grep -rL "DS-REFERENCE\|Design System Safety" .github/prompts/*.prompt.md 2>/dev/null
+grep -rL "DESIGN-SYSTEM-REFERENCE\|Design System Safety" .github/prompts/*.prompt.md 2>/dev/null
 ```
 
 ---
@@ -205,7 +205,7 @@ None.
 
 ```bash
 # ds-01 must be complete
-test -f docs/DS-REFERENCE.md || { echo "BLOCKED: ds-01 (Create DS reference doc) must complete first"; exit 1; }
+test -f docs/DESIGN-SYSTEM-REFERENCE.md || { echo "BLOCKED: ds-01 (Create DS reference doc) must complete first"; exit 1; }
 echo "PASS: Prerequisite satisfied"
 ```
 

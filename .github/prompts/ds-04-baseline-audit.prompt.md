@@ -25,7 +25,7 @@ cat AGENTS.md
 ls .github/instructions/*.instructions.md
 
 # 3. DS authority docs (prerequisites — both must exist)
-cat docs/DS-REFERENCE.md
+cat docs/DESIGN-SYSTEM-REFERENCE.md
 cat docs/DS-WORKFLOW.md
 
 # 4. Active sprint context
@@ -42,7 +42,7 @@ cat docs/active/INDEX.md 2>/dev/null || echo "No active index"
 
 ## Objective
 
-Conduct a full baseline audit of the codebase against the Design System rules established in `docs/DS-REFERENCE.md` and `docs/DS-WORKFLOW.md`. Produce an audit report `docs/DS-AUDIT-BASELINE.md` that catalogues every violation across four categories: (1) hardcoded hex/rgb color values, (2) hardcoded pixel dimensions, (3) GSAP rule violations, (4) missing dark mode tokens. This report becomes the input for `ds-05` (button migration) and `ds-06` (dark mode tokens) — it must be exhaustive and prioritized by blast radius.
+Conduct a full baseline audit of the codebase against the Design System rules established in `docs/DESIGN-SYSTEM-REFERENCE.md` and `docs/DS-WORKFLOW.md`. Produce an audit report `docs/DS-AUDIT-BASELINE.md` that catalogues every violation across four categories: (1) hardcoded hex/rgb color values, (2) hardcoded pixel dimensions, (3) GSAP rule violations, (4) missing dark mode tokens. This report becomes the input for `ds-05` (button migration) and `ds-06` (dark mode tokens) — it must be exhaustive and prioritized by blast radius.
 
 ---
 
@@ -50,7 +50,7 @@ Conduct a full baseline audit of the codebase against the Design System rules es
 
 ```bash
 # Verify prerequisites
-test -f docs/DS-REFERENCE.md && echo "PASS: DS-REFERENCE.md" || echo "FAIL: Run ds-01"
+test -f docs/DESIGN-SYSTEM-REFERENCE.md && echo "PASS: DESIGN-SYSTEM-REFERENCE.md" || echo "FAIL: Run ds-01"
 test -f docs/DS-WORKFLOW.md && echo "PASS: DS-WORKFLOW.md" || echo "FAIL: Run ds-03"
 
 # Count hardcoded hex violations
@@ -90,7 +90,7 @@ find src/ -name "*[Bb]utton*" -o -name "*[Bb]tn*" 2>/dev/null | grep -v node_mod
 | File | Action | Exists? | Purpose |
 |------|--------|---------|---------|
 | `docs/DS-AUDIT-BASELINE.md` | CREATE | No | Audit report — input for ds-05, ds-06 |
-| `docs/DS-REFERENCE.md` | READ ONLY | Yes | Rule authority |
+| `docs/DESIGN-SYSTEM-REFERENCE.md` | READ ONLY | Yes | Rule authority |
 | `docs/DS-WORKFLOW.md` | READ ONLY | Yes | GSAP rule authority |
 
 ---
@@ -117,7 +117,7 @@ grep -rn "[0-9]\+px[^-a-zA-Z]" src/ --include="*.tsx" --include="*.ts" --include
 ## A11y Checklist
 
 - [ ] Audit includes check for missing `aria-label` on interactive elements
-- [ ] Audit flags any color contrast failures (compare against WCAG AA in DS-REFERENCE)
+- [ ] Audit flags any color contrast failures (compare against WCAG AA in DESIGN-SYSTEM-REFERENCE)
 - [ ] Heading hierarchy violations noted in audit report
 
 ---
@@ -166,7 +166,7 @@ npm run build || exit 1
 
 **Date**: {date}
 **Auditor**: Copilot Coding Agent
-**Rules Authority**: docs/DS-REFERENCE.md, docs/DS-WORKFLOW.md
+**Rules Authority**: docs/DESIGN-SYSTEM-REFERENCE.md, docs/DS-WORKFLOW.md
 
 ---
 
@@ -250,10 +250,10 @@ None.
 ## Blocking Gate
 
 ```bash
-test -f docs/DS-REFERENCE.md || { echo "BLOCKED: ds-01 must complete first"; exit 1; }
+test -f docs/DESIGN-SYSTEM-REFERENCE.md || { echo "BLOCKED: ds-01 must complete first"; exit 1; }
 test -f docs/DS-WORKFLOW.md || { echo "BLOCKED: ds-03 must complete first"; exit 1; }
 # Also check ds-02 safety rules applied
-grep -q "DS-REFERENCE" .github/prompts/*.prompt.md 2>/dev/null && echo "PASS: ds-02 applied" || echo "WARN: ds-02 may not be complete"
+grep -q "DESIGN-SYSTEM-REFERENCE" .github/prompts/*.prompt.md 2>/dev/null && echo "PASS: ds-02 applied" || echo "WARN: ds-02 may not be complete"
 echo "PASS: Ready for baseline audit"
 ```
 

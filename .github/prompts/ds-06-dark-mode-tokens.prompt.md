@@ -25,7 +25,7 @@ cat AGENTS.md
 ls .github/instructions/*.instructions.md
 
 # 3. DS authority docs (all must exist)
-cat docs/DS-REFERENCE.md
+cat docs/DESIGN-SYSTEM-REFERENCE.md
 cat docs/DS-WORKFLOW.md
 cat docs/DS-AUDIT-BASELINE.md
 
@@ -133,7 +133,7 @@ grep -rn "\-\-color\|var(--" src/ --include="*.css" --include="*.tsx" 2>/dev/nul
 
 ## Design System Safety
 
-> ⚠️ Read `docs/DS-REFERENCE.md` before making ANY token change.
+> ⚠️ Read `docs/DESIGN-SYSTEM-REFERENCE.md` before making ANY token change.
 
 **Forbidden patterns** (agent must refuse):
 - Hardcoded hex colors anywhere in component files
