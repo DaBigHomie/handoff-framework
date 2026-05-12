@@ -15,6 +15,27 @@ You are using `@dabighomie/handoff-framework` v3.0.0 — a portable, session-awa
 
 Create handoff docs for the **current chat session** — what you know, what happened, what's next. These docs are NOT generic project wikis. They capture the conversation's work for the next agent.
 
+## Step 0: Query the Knowledge Base (MANDATORY — Do Not Skip)
+
+Before investigating the project, check for prior handoffs, context, and tasks:
+
+```bash
+# Semantic search for prior sessions on this topic
+cd ~/management-git/maximus-ai/.system/handoff/agent-kb/semantic && npx tsx query.mts "PROJECT_NAME TASK_TOPIC"
+
+# Check for existing handoffs in this repo
+sqlite3 ~/management-git/maximus-ai/.system/handoff/agent-kb/db/agent_kb.sqlite \
+  "SELECT title, source_path, created_at FROM documents WHERE repo='REPO_SLUG' AND doc_type='handoff' ORDER BY created_at DESC LIMIT 5;"
+
+# Check pending tasks for this repo
+sqlite3 ~/management-git/maximus-ai/.system/handoff/agent-kb/db/agent_kb.sqlite \
+  "SELECT id, description, priority FROM tasks WHERE repo='REPO_SLUG' AND status='pending' ORDER BY priority LIMIT 10;"
+```
+
+Use the results to avoid duplicating prior work and to reference existing task IDs in your handoff.
+
+**Repo slugs**: maximus, damieus, 043, ffs, ugwtf, docstd, atb, imgcli, auditfs, mgmt, workspace
+
 ## Step 1: Investigate the Project
 
 **Read the codebase first.** Do NOT fill in templates mechanically.
@@ -179,4 +200,35 @@ node scripts/validate-quality.js <PROJECT_PATH>/docs/handoff-<slug>/  # Handoff 
 - **Only commit files you created, edited, or updated** — never stage unrelated files
 - Run `git diff --cached --name-only` to verify before committing
 - Use `git add <specific-files>` instead of `git add -A` when working in a shared repo
+
+## Step 7: Register in Knowledge Base
+
+After committing handoff docs, ingest them into the centralized knowledge base:
+
+```bash
+# Re-run the seed pipeline to pick up new handoff docs
+cd ~/management-git/maximus-ai && npx tsx .system/handoff/scripts/seed-from-docs.mts
+
+# Verify your docs were ingested
+sqlite3 .system/handoff/agent-kb/db/agent_kb.sqlite \
+  "SELECT id, title, doc_type FROM documents WHERE source_path LIKE '%handoff-SESSION_SLUG%' ORDER BY created_at DESC;"
+```
+
+### Frontmatter Requirements for Ingestion
+
+All handoff docs MUST include this YAML frontmatter for automatic classification:
+
+```yaml
+---
+title: "Session Title"
+doc_type: handoff
+repo: REPO_SLUG
+session_id: "sess_YYYYMMDD_SLUG"
+created: "YYYY-MM-DDTHH:MM"
+status: complete | active | blocked
+tags: [relevant, session, tags]
+---
+```
+
+Without frontmatter, docs are classified by filename heuristics (less accurate).
 ```
