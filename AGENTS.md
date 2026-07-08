@@ -37,9 +37,11 @@ npx tsx src/cli.mts finalize --repo=<slug> --project=<dir> --from-session=<id> -
 
 - **Guard:** `src/verify-framework-integrity.mts` (read-only) asserts no local
   edits to the guarded surface; run at orchestrator boot / before dispatch.
-- **Governance rule:** `documentation-standards/.cursor/rules/handoff-framework-execute-only.mdc`
-  and the workspace-root mirror declare this repo execute-only for agents.
-- **Skill:** `documentation-standards/skills/handoff-sunset-v30/SKILL.md` — the
+- **Cross-surface parity:**
+  - Cursor: `documentation-standards/.cursor/rules/handoff-framework-execute-only.mdc` (`.mdc` is Cursor-only) + workspace-root mirror.
+  - Claude / Gemini / Antigravity: `documentation-standards/skills/handoff-framework-guard/SKILL.md` (synced to `.claude/skills`, `.gemini/skills`, `.cursor/skills`).
+  - Always-on memory: `AGENTS.md` (this file), `CLAUDE.md`, `GEMINI.md`.
+- **Workflow skill:** `documentation-standards/skills/handoff-sunset-v30/SKILL.md` — the
   execution workflow. It points here; it does not grant edit rights.
 
 ## Why
