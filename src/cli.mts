@@ -53,6 +53,46 @@ const COMMANDS: Record<string, { description: string; usage: string; script: str
     usage: 'npx tsx src/cli.mts migrate <project-name> [--session <slug>]',
     script: 'migrate-existing.mts',
   },
+  finalize: {
+    description: 'End-to-end Prime handoff: init → validate → CORTEX payload → agent dispatch',
+    usage:
+      'npx tsx src/cli.mts finalize --repo=<slug> --project=<dir> --from-session=<id> --session=<slug> [--cortex-apply]',
+    script: 'finalize-session-handoff.mts',
+  },
+  'build-cortex-payload': {
+    description: 'Build handoff.json for write-handoff-to-cortex.mts from v3 docs + manifest',
+    usage:
+      'npx tsx src/cli.mts build-cortex-payload --repo=<slug> --from-session=<id> --project=<dir> --session=<slug>',
+    script: 'build-cortex-payload.mts',
+  },
+  'agent-dispatch': {
+    description: 'Emit multi-agent dispatch brief (JSON + Markdown) for handoff closeout',
+    usage:
+      'npx tsx src/cli.mts agent-dispatch --repo=<slug> --from-session=<id> --project=<dir> --session=<slug>',
+    script: 'emit-agent-dispatch.mts',
+  },
+  'scaffold-sunset': {
+    description: 'Scaffold per-repo sunset/chapter/thread manifest stubs with strict naming',
+    usage:
+      'npx tsx src/cli.mts scaffold-sunset --from-session=<id> --repos="$REPOS" [--scope=sunset|chapter|thread] [--session-path=<dir>]',
+    script: 'scaffold-sunset-handoffs.mts',
+  },
+  'validate-manifests': {
+    description: 'Validate v3.1 session-manifests naming + frontmatter + Change Log',
+    usage:
+      'npx tsx src/cli.mts validate-manifests (--session-path=<dir> | --repos="$REPOS") [--mgmt-root=<root>]',
+    script: 'validate-session-manifests.mts',
+  },
+  tasklist: {
+    description: 'Print READ-ONLY formatted handoff execution task list (Sunset 3.0 DAG)',
+    usage: 'npx tsx src/cli.mts tasklist --repos="$REPOS" [--from-session=<id>] [--session-path=<dir>] [--format=md|plain]',
+    script: 'emit-handoff-tasklist.mts',
+  },
+  'verify-integrity': {
+    description: 'READ-ONLY execute-only guard: assert framework source is unmodified',
+    usage: 'npx tsx src/cli.mts verify-integrity [--ref=HEAD] [--strict]',
+    script: 'verify-framework-integrity.mts',
+  },
   version: {
     description: 'Show framework version',
     usage: 'npx tsx src/cli.mts version',
