@@ -131,28 +131,34 @@ async function writeManifestPointer(
   payloadPath: string,
   dispatchPath: string,
 ): Promise<string> {
-  const yyyymmdd = todayISO().replace(/-/g, '');
-  const primary = contextManifestPath(refs.mgmtRoot, args.repo, args.session, yyyymmdd);
-  const hub = hubContextManifestPath(refs.mgmtRoot, args.repo, args.session, yyyymmdd);
-  const key = cortexHandoffKey(args.repo, args.fromSession, todayISO());
+  const today = todayISO();
+  const primary = contextManifestPath(refs.mgmtRoot, args.repo, 'sunset', 'sunset', today);
+  const hub = hubContextManifestPath(refs.mgmtRoot, args.repo, 'sunset', 'sunset', today);
+  const key = cortexHandoffKey(args.repo, args.fromSession, 'sunset', 'sunset', today);
 
   const body = `---
 title: "Session handoff pointer — ${args.session}"
 doc_type: handoff
 repo: ${args.repo}
 session_id: ${args.fromSession}
-created: ${todayISO()}
+scope: sunset
+scope_ref: sunset
+version: "1.0.0"
+created: ${today}
+updated: ${today}
 status: in_progress
 cortex_handoff_key: "${key}"
-tags: [handoff, auto-pointer, cortex]
+tags: [handoff, auto-pointer, cortex, sunset]
 ---
 
-> **CORTEX SSOT:** \`${key}\` — authoritative. Complete §1–16 in PROMPT-SESSION-HANDOFF-MANIFEST or v3 docs 00–05.
+> **CORTEX SSOT:** \`${key}\` — authoritative. Complete Sunset protocol in PROMPT-SUNSET-HANDOFF-PROTOCOL.md.
 
 # Handoff automation pointer
 
 | Artifact | Path |
 |----------|------|
+| Naming SSOT | \`${refs.handoffNaming}\` |
+| Sunset prompt | \`${refs.promptSunset}\` |
 | CORTEX payload (draft) | \`${payloadPath}\` |
 | Agent dispatch brief | \`${dispatchPath}\` |
 | Handoff v3 folder | \`${join(refs.mgmtRoot, args.project, 'docs', `handoff-${args.session}`)}\` |
@@ -170,7 +176,7 @@ tags: [handoff, auto-pointer, cortex]
 
 | Date | Author | Note |
 |------|--------|------|
-| ${todayISO()} | finalize-session-handoff.mts | Auto-generated pointer |
+| ${today} | finalize-session-handoff.mts | Auto-generated sunset pointer v1.0.0 |
 `;
 
   await mkdir(join(refs.mgmtRoot, args.repo, 'docs/context-manifests'), { recursive: true });
@@ -273,7 +279,7 @@ async function main(): Promise<void> {
   console.log(`  dispatch:    ${dispatchJson}`);
   console.log(`  dispatch md: ${dispatchMd}`);
   console.log(`  manifest:    ${manifestPath}`);
-  console.log(`  CORTEX key:  ${cortexHandoffKey(args.repo, args.fromSession, todayISO())}`);
+  console.log(`  CORTEX key:  ${cortexHandoffKey(args.repo, args.fromSession, 'sunset', 'sunset', todayISO())}`);
   console.log('');
   log.info('Multi-agent: dispatch wave-1 lanes in ONE message (disjoint write targets).');
   log.dim(`  Read: ${dispatchMd}`);

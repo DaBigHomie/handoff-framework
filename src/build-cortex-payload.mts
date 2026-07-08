@@ -27,7 +27,7 @@ import { join } from 'node:path';
 import { todayISO } from './types.js';
 import { log, parseFrontmatter, resolveProjectDir, getFrameworkRoot } from './utils.js';
 import { resolveMgmtRoot } from './lib/mgmt-root.js';
-import { buildPrimePathRefs } from './lib/prime-paths.js';
+import { buildPrimePathRefs, cortexHandoffKey, type HandoffScope } from './lib/prime-paths.js';
 
 const SCHEMA_VERSION = '1.0';
 
@@ -51,6 +51,8 @@ type Args = {
   out: string;
   stdout: boolean;
   mgmtRoot?: string;
+  scope: HandoffScope;
+  scopeRef?: string;
 };
 
 function parseArgs(): Args {
@@ -87,6 +89,8 @@ function parseArgs(): Args {
     out: get('--out') ?? './handoff.json',
     stdout: argv.includes('--stdout'),
     mgmtRoot: get('--mgmt-root'),
+    scope: (get('--scope') as HandoffScope) ?? 'sunset',
+    scopeRef: get('--scope-ref'),
   };
 }
 
@@ -165,7 +169,8 @@ async function main(): Promise<void> {
   } else {
     await writeFile(args.out, json, 'utf-8');
     log.success(`Wrote ${args.out}`);
-    log.info(`CORTEX key: handoff:${args.repo}:${args.fromSession}:${todayISO()}`);
+    const key = cortexHandoffKey(args.repo, args.fromSession, args.scope, args.scopeRef, todayISO());
+    log.info(`CORTEX key: ${key}`);
     log.dim(`Apply: npx tsx "${refs.writeHandoffScript}" --repo=${args.repo} --from-session=${args.fromSession} --payload-file=${args.out} --apply`);
   }
 }

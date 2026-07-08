@@ -71,6 +71,12 @@ const COMMANDS: Record<string, { description: string; usage: string; script: str
       'npx tsx src/cli.mts agent-dispatch --repo=<slug> --from-session=<id> --project=<dir> --session=<slug>',
     script: 'emit-agent-dispatch.mts',
   },
+  'scaffold-sunset': {
+    description: 'Scaffold per-repo sunset/chapter/thread manifest stubs with strict naming',
+    usage:
+      'npx tsx src/cli.mts scaffold-sunset --from-session=<id> --repos=repo-a,repo-b [--scope=sunset|chapter|thread]',
+    script: 'scaffold-sunset-handoffs.mts',
+  },
   version: {
     description: 'Show framework version',
     usage: 'npx tsx src/cli.mts version',

@@ -86,8 +86,8 @@ function parseArgs() {
 }
 
 function buildWaves(args: ReturnType<typeof parseArgs>, refs: ReturnType<typeof buildPrimePathRefs>): AgentLane[] {
-  const date = todayISO().replace(/-/g, '');
-  const manifest = contextManifestPath(refs.mgmtRoot, args.repo, args.session, date);
+  const today = todayISO();
+  const manifest = contextManifestPath(refs.mgmtRoot, args.repo, 'sunset', 'sunset', today);
   const handoffDir = join(refs.mgmtRoot, args.project, 'docs', `handoff-${args.session}`);
 
   const waves: AgentLane[] = [
@@ -116,11 +116,12 @@ function buildWaves(args: ReturnType<typeof parseArgs>, refs: ReturnType<typeof 
       surface: 'cursor-task',
       readonly: false,
       skill: refs.handoffCloudDirectSkill,
-      prompt_ref: refs.promptManifest,
+      prompt_ref: refs.promptSunset,
       brief:
-        `Fill handoff v3 docs 00–05 in ${handoffDir}. Use PROMPT-SESSION-HANDOFF-MANIFEST schema. ` +
-        'Investigate codebase — no template placeholders. Cross-repo: mirror manifest to hub.',
-      write_targets: [handoffDir, manifest, hubContextManifestPath(refs.mgmtRoot, args.repo, args.session, date)],
+        `Execute Sunset protocol per ${refs.promptSunset}. One manifest PER touched repo. ` +
+        `Strict naming: ${refs.handoffNaming}. Fill [SESSION MANIFEST], [ARTIFACT REGISTRY], ` +
+        `[COMMAND SUNSET LOG], [THE BATON] + Change Log v1.0.0.`,
+      write_targets: [handoffDir, manifest, hubContextManifestPath(refs.mgmtRoot, args.repo, 'sunset', 'sunset', today)],
       depends_on: ['th-markers'],
     },
     {
@@ -134,8 +135,9 @@ function buildWaves(args: ReturnType<typeof parseArgs>, refs: ReturnType<typeof 
       skill: refs.promptKnowledge,
       prompt_ref: refs.promptKnowledge,
       brief:
-        'Author CORTEX knowledge artifact (long-term memory): decisions, 50x logic, frictions, debt. ' +
-        'Skip if session was trivial with no strategic decisions.',
+        'Author CORTEX knowledge per chapter/thread/session scope. Use [CORTEX ARCHIVE ENTRY] sections. ' +
+        'One archive mirror per scope under docs/session-artifacts/<session_id>/ch<NN>|th-<slug>/. ' +
+        'Mandatory version + Change Log.',
       write_targets: [
         join(refs.mgmtRoot, args.repo, 'docs/session-artifacts', args.fromSession, `CORTEX-ARCHIVE-${args.session}.md`),
       ],
@@ -170,7 +172,7 @@ function buildWaves(args: ReturnType<typeof parseArgs>, refs: ReturnType<typeof 
       brief:
         'Build handoff.json via build-cortex-payload.mts, dry-run write-handoff-to-cortex.mts, human confirm, --apply. ' +
         'Emit next-agent bootstrap §13.',
-      write_targets: [`cortex_knowledge:handoff:${args.repo}:${args.fromSession}:${todayISO()}`],
+      write_targets: [`cortex_knowledge:handoff:${args.repo}:${args.fromSession}:sunset:${today.slice(0, 10)}`],
       depends_on: ['th-handoff-v3', 'th-validate'],
     },
   ];
@@ -227,7 +229,8 @@ async function main(): Promise<void> {
   const args = parseArgs();
   const mgmtRoot = resolveMgmtRoot(args.mgmtRoot);
   const refs = buildPrimePathRefs(mgmtRoot);
-  const date = todayISO().replace(/-/g, '');
+  const today = todayISO();
+  const date = today.replace(/-/g, '');
 
   const brief: DispatchBrief = {
     schema_version: '1.0',
@@ -239,8 +242,8 @@ async function main(): Promise<void> {
     orchestrator_agent: 181,
     paths: {
       ...refs,
-      manifest_primary: contextManifestPath(mgmtRoot, args.repo, args.session, date),
-      manifest_hub: hubContextManifestPath(mgmtRoot, args.repo, args.session, date),
+      manifest_primary: contextManifestPath(mgmtRoot, args.repo, 'sunset', 'sunset', today),
+      manifest_hub: hubContextManifestPath(mgmtRoot, args.repo, 'sunset', 'sunset', today),
       handoff_v3: join(mgmtRoot, args.project, 'docs', `handoff-${args.session}`),
     },
     waves: buildWaves(args, refs),
