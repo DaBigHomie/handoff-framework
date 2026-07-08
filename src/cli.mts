@@ -83,6 +83,16 @@ const COMMANDS: Record<string, { description: string; usage: string; script: str
       'npx tsx src/cli.mts validate-manifests (--session-path=<dir> | --repos="$REPOS") [--mgmt-root=<root>]',
     script: 'validate-session-manifests.mts',
   },
+  tasklist: {
+    description: 'Print READ-ONLY formatted handoff execution task list (Sunset 3.0 DAG)',
+    usage: 'npx tsx src/cli.mts tasklist --repos="$REPOS" [--from-session=<id>] [--session-path=<dir>] [--format=md|plain]',
+    script: 'emit-handoff-tasklist.mts',
+  },
+  'verify-integrity': {
+    description: 'READ-ONLY execute-only guard: assert framework source is unmodified',
+    usage: 'npx tsx src/cli.mts verify-integrity [--ref=HEAD] [--strict]',
+    script: 'verify-framework-integrity.mts',
+  },
   version: {
     description: 'Show framework version',
     usage: 'npx tsx src/cli.mts version',
