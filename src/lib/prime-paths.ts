@@ -2,14 +2,16 @@
  * prime-paths.ts — Canonical Prime / CORTEX / handoff path builders.
  *
  * SSOT references:
- * - documentation-standards/templates/handoff/NAMING-CONVENTIONS.md
+ * - documentation-standards/templates/handoff/NAMING-CONVENTIONS.md (v3.1)
  * - documentation-standards/docs/policies/handoff-cortex-ssot.md
  * - documentation-standards/docs/policies/session-naming-schema.md
  */
 
 import { join } from 'node:path';
 
-export type HandoffScope = 'sunset' | 'chapter' | 'thread' | 'session';
+export type HandoffScope = 'sunset' | 'chapter' | 'thread' | 'session' | 'index';
+
+export const SESSION_MANIFESTS_SUBDIR = 'docs/session-manifests';
 
 export type PrimePathRefs = {
   mgmtRoot: string;
@@ -19,6 +21,7 @@ export type PrimePathRefs = {
   handoffPolicy: string;
   handoffNaming: string;
   handoffCloudDirectSkill: string;
+  handoffSunsetV30Skill: string;
   sessionChapterIndexSkill: string;
   multiModelAssignmentSkill: string;
   orchestratorContinuationSkill: string;
@@ -43,6 +46,7 @@ export function buildPrimePathRefs(mgmtRoot: string): PrimePathRefs {
     handoffPolicy: join(docstd, 'docs/policies/handoff-cortex-ssot.md'),
     handoffNaming: join(handoffTemplates, 'NAMING-CONVENTIONS.md'),
     handoffCloudDirectSkill: join(docstd, 'skills/handoff-cloud-direct/SKILL.md'),
+    handoffSunsetV30Skill: join(docstd, 'skills/handoff-sunset-v30/SKILL.md'),
     sessionChapterIndexSkill: join(docstd, 'skills/session-chapter-index/SKILL.md'),
     multiModelAssignmentSkill: join(docstd, 'skills/multi-model-task-assignment/SKILL.md'),
     orchestratorContinuationSkill: join(docstd, 'skills/orchestrator-continuation/SKILL.md'),
@@ -66,15 +70,58 @@ export function compactDate(isoOrDate: string): string {
   return isoOrDate.slice(0, 10).replace(/-/g, '');
 }
 
+export function slugifyDescription(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
+export function sanitizeCortexId(sessionId: string): string {
+  // Filename-safe, hyphen-only per NAMING-CONVENTIONS (`:` and `_` → `-`).
+  return sessionId
+    .toLowerCase()
+    .replace(/[:/\\@._]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/** UTC datetime key YYYYMMDDTHHMMSS for manifest filenames */
+export function manifestDatetimeKey(isoOrDate: string): string {
+  if (isoOrDate.includes('T')) {
+    const d = new Date(isoOrDate);
+    if (!Number.isNaN(d.getTime())) {
+      const p = (n: number) => String(n).padStart(2, '0');
+      return `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}T${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}`;
+    }
+  }
+  return `${compactDate(isoOrDate)}T000000`;
+}
+
+export function handoffTypeForScope(scope: HandoffScope): string {
+  if (scope === 'index') return 'index';
+  if (scope === 'session' || scope === 'sunset') return 'sunset';
+  return scope;
+}
+
 /**
  * Scope segment for CORTEX handoff keys and filenames.
  * scopeRef: `sunset` | `ch-03` | `th-bg-v1-t1`
  */
 export function normalizeScopeRef(scope: HandoffScope, scopeRef?: string): string {
   if (scope === 'session' || scope === 'sunset') return 'sunset';
+  if (scope === 'index') return 'index';
   if (scopeRef && scopeRef.trim()) return scopeRef.trim();
   if (scope === 'chapter') return 'ch-00';
   return 'th-unknown';
+}
+
+export function defaultDescriptionForScope(scope: HandoffScope, scopeRef?: string): string {
+  const segment = normalizeScopeRef(scope, scopeRef);
+  if (scope === 'chapter' || scope === 'thread') return segment;
+  if (scope === 'index') return 'multi-repo-session-index';
+  return 'session-sunset';
 }
 
 /**
@@ -117,59 +164,104 @@ export function chapterIndexKey(sessionId: string, dateIso: string): string {
   return `session:${sessionId}:chapters-${isoDateKey(dateIso)}`;
 }
 
-/** Manifest filename (not full path) */
+/**
+ * Manifest filename (v3.1 — not full path).
+ * Pattern: datetime-description-repo-handoff-type-cortex-id.md
+ */
 export function manifestFilename(
   repo: string,
   scope: HandoffScope,
   scopeRef: string | undefined,
   dateIso: string,
+  descriptionSlug?: string,
+  cortexSessionId?: string,
 ): string {
-  const yyyymmdd = compactDate(dateIso);
-  const segment = normalizeScopeRef(scope, scopeRef);
-  if (scope === 'sunset' || scope === 'session') {
-    return `SESSION-${repo}-sunset-${yyyymmdd}.md`;
-  }
-  if (scope === 'chapter') {
-    const nn = segment.replace(/^ch-/, '').padStart(2, '0');
-    const slug = segment.includes('-') ? segment.split('-').slice(2).join('-') || 'chapter' : 'chapter';
-    return `SESSION-${repo}-ch${nn}-${slug}-${yyyymmdd}.md`;
-  }
-  const thSlug = segment.replace(/^th-/, '');
-  return `SESSION-${repo}-th-${thSlug}-${yyyymmdd}.md`;
+  const dt = manifestDatetimeKey(dateIso);
+  const desc = slugifyDescription(descriptionSlug ?? defaultDescriptionForScope(scope, scopeRef));
+  const handoffType = handoffTypeForScope(scope);
+  const cortexId = sanitizeCortexId(cortexSessionId ?? 'unknown');
+  return `${dt}-${desc}-${repo}-${handoffType}-${cortexId}.md`;
 }
 
+export function sessionManifestPath(
+  mgmtRoot: string,
+  repo: string,
+  scope: HandoffScope,
+  scopeRef: string | undefined,
+  dateIso: string,
+  descriptionSlug?: string,
+  cortexSessionId?: string,
+): string {
+  return join(
+    mgmtRoot,
+    repo,
+    SESSION_MANIFESTS_SUBDIR,
+    manifestFilename(repo, scope, scopeRef, dateIso, descriptionSlug, cortexSessionId),
+  );
+}
+
+/** @deprecated Use sessionManifestPath — v3.1 name retained for callers during migration */
 export function contextManifestPath(
   mgmtRoot: string,
   repo: string,
   scope: HandoffScope,
   scopeRef: string | undefined,
   dateIso: string,
+  descriptionSlug?: string,
+  cortexSessionId?: string,
 ): string {
-  return join(mgmtRoot, repo, 'docs/context-manifests', manifestFilename(repo, scope, scopeRef, dateIso));
+  return sessionManifestPath(mgmtRoot, repo, scope, scopeRef, dateIso, descriptionSlug, cortexSessionId);
 }
 
-export function hubSessionIndexPath(mgmtRoot: string, sessionHash: string, dateIso: string): string {
+export function hubSessionIndexPath(
+  mgmtRoot: string,
+  sessionHash: string,
+  dateIso: string,
+  cortexSessionId?: string,
+): string {
   return join(
     mgmtRoot,
     'documentation-standards',
-    'docs/context-manifests',
-    `SESSION-INDEX-${sessionHash}-${compactDate(dateIso)}.md`,
+    SESSION_MANIFESTS_SUBDIR,
+    manifestFilename(
+      'documentation-standards',
+      'index',
+      'index',
+      dateIso,
+      `multi-repo-session-index-${sessionHash}`,
+      cortexSessionId ?? sessionHash,
+    ),
   );
 }
 
+export function hubSessionManifestPath(
+  mgmtRoot: string,
+  repo: string,
+  scope: HandoffScope,
+  scopeRef: string | undefined,
+  dateIso: string,
+  descriptionSlug?: string,
+  cortexSessionId?: string,
+): string {
+  return join(
+    mgmtRoot,
+    'documentation-standards',
+    SESSION_MANIFESTS_SUBDIR,
+    manifestFilename(repo, scope, scopeRef, dateIso, descriptionSlug, cortexSessionId),
+  );
+}
+
+/** @deprecated Use hubSessionManifestPath */
 export function hubContextManifestPath(
   mgmtRoot: string,
   repo: string,
   scope: HandoffScope,
   scopeRef: string | undefined,
   dateIso: string,
+  descriptionSlug?: string,
+  cortexSessionId?: string,
 ): string {
-  return join(
-    mgmtRoot,
-    'documentation-standards',
-    'docs/context-manifests',
-    manifestFilename(repo, scope, scopeRef, dateIso),
-  );
+  return hubSessionManifestPath(mgmtRoot, repo, scope, scopeRef, dateIso, descriptionSlug, cortexSessionId);
 }
 
 export function cortexArchiveMirrorPath(

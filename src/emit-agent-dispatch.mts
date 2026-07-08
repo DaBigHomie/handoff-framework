@@ -87,7 +87,15 @@ function parseArgs() {
 
 function buildWaves(args: ReturnType<typeof parseArgs>, refs: ReturnType<typeof buildPrimePathRefs>): AgentLane[] {
   const today = todayISO();
-  const manifest = contextManifestPath(refs.mgmtRoot, args.repo, 'sunset', 'sunset', today);
+  const manifest = contextManifestPath(
+    refs.mgmtRoot,
+    args.repo,
+    'sunset',
+    'sunset',
+    today,
+    args.session,
+    args.fromSession,
+  );
   const handoffDir = join(refs.mgmtRoot, args.project, 'docs', `handoff-${args.session}`);
 
   const waves: AgentLane[] = [
@@ -115,13 +123,25 @@ function buildWaves(args: ReturnType<typeof parseArgs>, refs: ReturnType<typeof 
       model_tier: 'sonnet',
       surface: 'cursor-task',
       readonly: false,
-      skill: refs.handoffCloudDirectSkill,
+      skill: refs.handoffSunsetV30Skill,
       prompt_ref: refs.promptSunset,
       brief:
         `Execute Sunset protocol per ${refs.promptSunset}. One manifest PER touched repo. ` +
         `Strict naming: ${refs.handoffNaming}. Fill [SESSION MANIFEST], [ARTIFACT REGISTRY], ` +
         `[COMMAND SUNSET LOG], [THE BATON] + Change Log v1.0.0.`,
-      write_targets: [handoffDir, manifest, hubContextManifestPath(refs.mgmtRoot, args.repo, 'sunset', 'sunset', today)],
+      write_targets: [
+        handoffDir,
+        manifest,
+        hubContextManifestPath(
+          refs.mgmtRoot,
+          args.repo,
+          'sunset',
+          'sunset',
+          today,
+          args.session,
+          args.fromSession,
+        ),
+      ],
       depends_on: ['th-markers'],
     },
     {

@@ -11,7 +11,7 @@
  *     --repos=documentation-standards,maximus-ai \
  *     --scope=sunset \
  *     [--scope-ref=sunset] \
- *     [--session-slug=cortex-handoff-suite] \
+ *     [--description=handoff-automation-v3] \
  *     [--author-agent=agent-180] \
  *     [--dry-run]
  *
@@ -31,6 +31,8 @@ import { resolveMgmtRoot } from './lib/mgmt-root.js';
 import {
   buildPrimePathRefs,
   contextManifestPath,
+  manifestFilename,
+  SESSION_MANIFESTS_SUBDIR,
   cortexHandoffKey,
   cortexArchiveMirrorPath,
   deriveChapterId,
@@ -46,10 +48,12 @@ type Args = {
   scope: HandoffScope;
   scopeRef?: string;
   sessionSlug: string;
+  description: string;
   authorAgent: string;
   chapterNn?: string;
   chapterSlug?: string;
   threadSlug?: string;
+  sessionPath?: string;
   dryRun: boolean;
   mgmtRoot?: string;
 };
@@ -70,10 +74,12 @@ function parseArgs(): Args {
     scope,
     scopeRef: get('--scope-ref'),
     sessionSlug: get('--session-slug') ?? 'session-handoff',
+    description: get('--description') ?? get('--session-slug') ?? 'session-sunset',
     authorAgent: get('--author-agent') ?? 'agent-180',
     chapterNn: get('--chapter-nn'),
     chapterSlug: get('--chapter-slug'),
     threadSlug: get('--thread-slug'),
+    sessionPath: get('--session-path'),
     dryRun: argv.includes('--dry-run'),
     mgmtRoot: get('--mgmt-root'),
   };
@@ -100,7 +106,15 @@ function manifestBody(args: Args, repo: string, refs: ReturnType<typeof buildPri
     args.scope === 'thread' && args.threadSlug
       ? deriveThreadId(args.fromSession, args.threadSlug)
       : 'null';
-  const manifestPath = contextManifestPath(refs.mgmtRoot, repo, args.scope, scopeRef, today);
+  const manifestPath = contextManifestPath(
+    refs.mgmtRoot,
+    repo,
+    args.scope,
+    scopeRef,
+    today,
+    args.description,
+    args.fromSession,
+  );
   const cortexKey = cortexHandoffKey(repo, args.fromSession, args.scope, scopeRef, today);
   const v3Folder = handoffV3Folder(refs.mgmtRoot, repo, args.sessionSlug, args.scope, scopeRef);
 
@@ -196,12 +210,16 @@ async function main(): Promise<void> {
   const written: string[] = [];
 
   for (const repo of args.repos) {
-    const path = contextManifestPath(mgmtRoot, repo, args.scope, scopeRef, today);
+    // --session-path overrides the derived <repo>/docs/session-manifests dir.
+    const outDir = args.sessionPath ?? join(mgmtRoot, repo, SESSION_MANIFESTS_SUBDIR);
+    const path = args.sessionPath
+      ? join(outDir, manifestFilename(repo, args.scope, scopeRef, today, args.description, args.fromSession))
+      : contextManifestPath(mgmtRoot, repo, args.scope, scopeRef, today, args.description, args.fromSession);
     const body = manifestBody(args, repo, refs, scopeRef);
     if (args.dryRun) {
       log.dim(`[dry-run] would write ${path}`);
     } else {
-      await mkdir(join(mgmtRoot, repo, 'docs/context-manifests'), { recursive: true });
+      await mkdir(outDir, { recursive: true });
       await writeFile(path, body, 'utf-8');
       log.success(`Wrote ${path}`);
       written.push(path);
@@ -222,7 +240,7 @@ async function main(): Promise<void> {
 
   if (args.repos.length > 1 && !args.dryRun) {
     const hash = args.fromSession.slice(-8);
-    const indexPath = hubSessionIndexPath(mgmtRoot, hash, today);
+    const indexPath = hubSessionIndexPath(mgmtRoot, hash, today, args.fromSession);
     const indexBody = `---
 title: "Session index — ${args.fromSession}"
 doc_type: handoff
@@ -248,7 +266,7 @@ ${written.map((p) => `- \`${p}\``).join('\n')}
 |---------|------|--------|--------|
 | 1.0.0 | ${today} | ${args.authorAgent} | Index for multi-repo ${args.scope} sunset. |
 `;
-    await mkdir(join(mgmtRoot, 'documentation-standards', 'docs/context-manifests'), { recursive: true });
+    await mkdir(join(mgmtRoot, 'documentation-standards', SESSION_MANIFESTS_SUBDIR), { recursive: true });
     await writeFile(indexPath, indexBody, 'utf-8');
     log.success(`Wrote hub index ${indexPath}`);
   }

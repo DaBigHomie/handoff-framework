@@ -74,8 +74,14 @@ const COMMANDS: Record<string, { description: string; usage: string; script: str
   'scaffold-sunset': {
     description: 'Scaffold per-repo sunset/chapter/thread manifest stubs with strict naming',
     usage:
-      'npx tsx src/cli.mts scaffold-sunset --from-session=<id> --repos=repo-a,repo-b [--scope=sunset|chapter|thread]',
+      'npx tsx src/cli.mts scaffold-sunset --from-session=<id> --repos="$REPOS" [--scope=sunset|chapter|thread] [--session-path=<dir>]',
     script: 'scaffold-sunset-handoffs.mts',
+  },
+  'validate-manifests': {
+    description: 'Validate v3.1 session-manifests naming + frontmatter + Change Log',
+    usage:
+      'npx tsx src/cli.mts validate-manifests (--session-path=<dir> | --repos="$REPOS") [--mgmt-root=<root>]',
+    script: 'validate-session-manifests.mts',
   },
   version: {
     description: 'Show framework version',
