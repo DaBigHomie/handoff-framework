@@ -53,6 +53,24 @@ const COMMANDS: Record<string, { description: string; usage: string; script: str
     usage: 'npx tsx src/cli.mts migrate <project-name> [--session <slug>]',
     script: 'migrate-existing.mts',
   },
+  finalize: {
+    description: 'End-to-end Prime handoff: init → validate → CORTEX payload → agent dispatch',
+    usage:
+      'npx tsx src/cli.mts finalize --repo=<slug> --project=<dir> --from-session=<id> --session=<slug> [--cortex-apply]',
+    script: 'finalize-session-handoff.mts',
+  },
+  'build-cortex-payload': {
+    description: 'Build handoff.json for write-handoff-to-cortex.mts from v3 docs + manifest',
+    usage:
+      'npx tsx src/cli.mts build-cortex-payload --repo=<slug> --from-session=<id> --project=<dir> --session=<slug>',
+    script: 'build-cortex-payload.mts',
+  },
+  'agent-dispatch': {
+    description: 'Emit multi-agent dispatch brief (JSON + Markdown) for handoff closeout',
+    usage:
+      'npx tsx src/cli.mts agent-dispatch --repo=<slug> --from-session=<id> --project=<dir> --session=<slug>',
+    script: 'emit-agent-dispatch.mts',
+  },
   version: {
     description: 'Show framework version',
     usage: 'npx tsx src/cli.mts version',
